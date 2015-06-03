@@ -48,13 +48,6 @@ void DataService_add(DataService &self,
   }
 }
 
-void DataService_addweak(DataService &self,
-                         const std::string & name,
-                         const boost::python::object & value) {
-  auto cppvalue = extract<WorkspaceWeakPtr&>(value)();
-  self.add(name, cppvalue.lock());
-}
-
 WorkspaceWeakPtr DataService_get(DataService &self,
                                  const std::string & name) {
   return WorkspaceWeakPtr(self.get(name));
@@ -94,7 +87,6 @@ BOOST_PYTHON_MODULE(extract_ref)
   // DataService
   class_<DataService, boost::noncopyable>("DataService", no_init)
     .def("add", &DataService_add)
-    .def("add_weak", &DataService_addweak)
     .def("remove", &DataService::remove)
     .def("get", &DataService_get)
     .def("size", &DataService::size)
