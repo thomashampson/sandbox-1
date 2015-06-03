@@ -53,7 +53,6 @@ WorkspaceWeakPtr DataService_get(DataService &self,
 
 void do_something(DataService &svc) {
   auto item = svc.get("test2");
-  std::cerr << "Workspace stuff " << item->name() << "\n";
 }
 
 //------------------------------------------------------------------------------
