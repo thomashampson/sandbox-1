@@ -36,14 +36,12 @@ void DataService_add(DataService &self,
                      const boost::python::object & value) {
   extract<WorkspaceWeakPtr> weak_extract(value);
   if(weak_extract.check()) {
-    std::cerr << "Adding from weak\n";
     self.add(name, weak_extract().lock());
     return;
   }
 
   extract<WorkspaceSharedPtr> shared_extract(value);
   if(shared_extract.check()) {
-    std::cerr << "Adding from shared\n";
     self.add(name, shared_extract());
   }
 }
@@ -55,7 +53,6 @@ WorkspaceWeakPtr DataService_get(DataService &self,
 
 void do_something(DataService &svc) {
   auto item = svc.get("test2");
-  std::cerr << "Workspace stuff " << item->name() << "\n";
 }
 
 //------------------------------------------------------------------------------
