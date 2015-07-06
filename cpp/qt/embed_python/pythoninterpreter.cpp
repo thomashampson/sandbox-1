@@ -9,6 +9,9 @@
 
 namespace {
 
+/// Handle to the threadstate of the thread that called PyInitialize()
+PyThreadState *MAIN_THREADSTATE = nullptr;
+
 /**
  * Worker task for the asynchronous exec calls
  */
@@ -47,17 +50,17 @@ private:
  */
 PythonInterpreter::PythonInterpreter(QObject *parent)
     : QObject(parent), m_locals(NULL) {
-  if (Py_IsInitialized() == 0) {
-    Py_Initialize();
-    PyEval_InitThreads();
-    std::cerr << "Current Python threadstate " << PyThreadState_Get() << "\n";
+  Py_Initialize();
+  PyEval_InitThreads();
+  MAIN_THREADSTATE = PyThreadState_Get();
+  std::cerr << "Current Python threadstate " << MAIN_THREADSTATE << "\n";
 
+  // Store the main module as context for execution
+  PyObject *mainModule = PyImport_AddModule("__main__");
+  m_locals = PyDict_Copy(PyModule_GetDict(mainModule));
 
-    PyObject *mainModule = PyImport_AddModule("__main__");
-    m_locals = PyDict_Copy(PyModule_GetDict(mainModule));
-    PyEval_SaveThread();
-    //std::cerr << "Current Python threadstate " << PyThreadState_Get() << "\n";
-  }
+  // Set a null threadstate to ensure the acquire call doesn't deadlock
+  PyEval_SaveThread();
 }
 
 /**
