@@ -13,6 +13,10 @@ PyObject *toByteCode(const char *src) {
   return Py_CompileString(src, "", Py_file_input);
 }
 
+PyObject *executeByteCode(PyObject *codeObject, PyObject *context) {
+  return PyEval_EvalCode((PyCodeObject *)codeObject, context, context);
+}
+
 /**
  * Worker task for the asynchronous exec calls
  */
@@ -23,20 +27,17 @@ public:
 
   void run() {
     std::cerr << "ExecutePythonScript::run() - In thread " << QThread::currentThread() << "\n";
-    PyGILState_STATE state = PyGILState_Ensure();
-    std::cerr << "Current Python threadstate " << PyThreadState_Get() << "\n";
-    
-    PyObject *codeObject = toByteCode(m_src.toAscii().data());
-    PyObject *result(NULL);
-    if (codeObject) {
+    auto *pythreadState = PyThreadState_New(PyInterpreterState_Head());
+    PyEval_AcquireThread(pythreadState);
 
-      result = PyEval_EvalCode((PyCodeObject *)codeObject, m_locals, m_locals);
-    }
+    std::cerr << "Current Python threadstate " << PyThreadState_Get() << "\n";
+    PyObject *codeObject = toByteCode(m_src.toAscii().data());
+    PyObject *result = executeByteCode(codeObject, m_locals);
     if (!result) {
       PyErr_Clear();
     }
-    
-    PyGILState_Release(state);
+
+    PyEval_ReleaseThread(pythreadState);
   }
 
 private:
