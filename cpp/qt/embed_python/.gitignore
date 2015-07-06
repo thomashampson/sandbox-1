@@ -1,5 +1,8 @@
-# Standard build directory
+# Standard build directories (these should really be in .git/info/exclude but
+# hey, this is just for me)
 build/*
+builds/*
+
 # Compiled Object files
 *.slo
 *.lo
