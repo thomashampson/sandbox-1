@@ -1,14 +1,31 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required (VERSION 2.8)
 project (embed_python)
 
+###############################################################################
+# Project-specific CMake
+###############################################################################
+set (CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+
+###############################################################################
+# Compiler Setup
+###############################################################################
+include (CompilerSetup)
+
+################################################################################
+# Dependencies
+################################################################################
 # Qt4
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
-find_package (Qt4 4.8 COMPONENTS QtCore QtGui)
+find_package (Qt4 4.8 COMPONENTS QtCore QtGui REQUIRED)
+include(${QT_USE_FILE})
 # Python
 find_package (PythonLibs REQUIRED)
 include_directories (${PYTHON_INCLUDE_DIR})
 
+################################################################################
+# Source
+################################################################################
 set (SRC_FILES
     code.cpp
     codeeditor.cpp
