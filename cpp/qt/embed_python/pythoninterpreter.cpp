@@ -8,22 +8,14 @@
 #include <iostream>
 
 namespace {
-PyObject *toByteCode(const char *src) {
-  // Simplest case: Code is a single expression
-  return Py_CompileString(src, "", Py_file_input);
-}
-
-PyObject *executeByteCode(PyObject *codeObject, PyObject *context) {
-  return PyEval_EvalCode((PyCodeObject *)codeObject, context, context);
-}
 
 /**
  * Worker task for the asynchronous exec calls
  */
 class ExecutePythonScript : public QRunnable {
 public:
-  ExecutePythonScript(const Code &source, PyObject *locals)
-      : QRunnable(), m_src(source.str()), m_locals(locals) {}
+  ExecutePythonScript(const PythonInterpreter &interpreter, const Code &source)
+    : QRunnable(), m_interp(interpreter), m_src(source.str()) {}
 
   void run() {
     std::cerr << "ExecutePythonScript::run() - In thread " << QThread::currentThread() << "\n";
@@ -31,8 +23,8 @@ public:
     PyEval_AcquireThread(pythreadState);
 
     std::cerr << "Current Python threadstate " << PyThreadState_Get() << "\n";
-    PyObject *codeObject = toByteCode(m_src.toAscii().data());
-    PyObject *result = executeByteCode(codeObject, m_locals);
+    PyObject *codeObject = m_interp.toByteCode(m_src.toAscii().data());
+    PyObject *result = m_interp.executeByteCode(codeObject);
     if (!result) {
       PyErr_Clear();
     }
@@ -41,8 +33,8 @@ public:
   }
 
 private:
+  const PythonInterpreter & m_interp;
   QString m_src;
-  PyObject *m_locals;
 };
 }
 
@@ -77,12 +69,22 @@ PythonInterpreter::~PythonInterpreter() {
 }
 
 /**
+ * Execute the code with the current interpreter environment in a separate
+ * thread
+ * @param code
+ */
+void PythonInterpreter::execute(const Code &code) const {
+  std::cerr << "PythonInterpreter::execute - In thread " << QThread::currentThread() << "\n";
+  QThreadPool::globalInstance()->start(new ExecutePythonScript(*this, code));
+}
+
+/**
  * Update the sys.path attribute if the string is not empty and is not already
  * present.
  * Note the path does not have to exist
  * @param path Directory to add to sys.path
  */
-void PythonInterpreter::sysPathAppend(const QString &path) {
+void PythonInterpreter::sysPathAppend(const QString &path) const {
   if (path.isEmpty())
     return;
   QString code = "import sys\n"
@@ -96,11 +98,22 @@ void PythonInterpreter::sysPathAppend(const QString &path) {
 }
 
 /**
- * Execute the code with the current interpreter environment in a separate
- * thread
- * @param code
+ * Compiles the source code to Python byte code
+ * @param src A c-string containing the Python source
  */
-void PythonInterpreter::execute(const Code &code) {
-  std::cerr << "PythonInterpreter::execute - In thread " << QThread::currentThread() << "\n";
-  QThreadPool::globalInstance()->start(new ExecutePythonScript(code, m_locals));
+PyObject *PythonInterpreter::toByteCode(const char *src) const {
+  // Simplest case: Code is a single expression
+  return Py_CompileString(src, "", Py_file_input);
+}
+
+/**
+ * Takes a Python bytcode object and executes it. Note: No check on the code
+ * object is performed.
+ * @param codeObject A code object, usually the result of a Py_CompileString call
+ * @param context An optional Py_DICT type describing the current environment context. If null
+ * the default context of the main interpreter is used.
+ */
+PyObject *PythonInterpreter::executeByteCode(PyObject *codeObject, PyObject *context) const {
+  if(!context) context = m_locals;
+  return PyEval_EvalCode((PyCodeObject *)codeObject, context, context);
 }

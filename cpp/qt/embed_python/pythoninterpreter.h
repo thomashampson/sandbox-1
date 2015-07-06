@@ -15,7 +15,7 @@ class Code;
  struct _object;
  typedef _object PyObject;
 #endif
- 
+
 
 class PythonInterpreter : public QObject
 {
@@ -25,9 +25,17 @@ public:
   PythonInterpreter(QObject *parent = NULL);
   ~PythonInterpreter();
 
-  void sysPathAppend(const QString & path);
-  /// Execute a lump of arbitrary code in the current environment
-  void execute(const Code & code);
+  ///@{
+  ///@name High-level API
+  void execute(const Code & code) const;
+  void sysPathAppend(const QString & path) const;
+  ///@}
+
+  ///@{
+  ///@name Low-level API
+  PyObject *toByteCode(const char *src) const;
+  PyObject *executeByteCode(PyObject *codeObject, PyObject *context = nullptr) const;
+  ///@}
 
 private:
   PyObject *m_locals;
