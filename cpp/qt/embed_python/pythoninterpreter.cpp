@@ -2,15 +2,27 @@
 #include "code.h"
 #include <Python.h>
 
+#include <QApplication>
 #include <QRunnable>
+#include <QtConcurrentRun>
 #include <QThreadPool>
 
 #include <iostream>
 
+extern "C" {
+extern PyThreadState *_PyThreadState_Current;
+
+/// Returns 1 if
+bool PyGILState_Check2() {
+  PyThreadState *tstate = _PyThreadState_Current;
+  return tstate && (tstate == PyGILState_GetThisThreadState());
+}
+}
+
 namespace {
 
 /// Handle to the threadstate of the thread that called PyInitialize()
-PyThreadState *MAIN_THREADSTATE = nullptr;
+PyThreadState *THREADSTATE_INIT = nullptr;
 
 /**
  * Worker task for the asynchronous exec calls
@@ -18,25 +30,47 @@ PyThreadState *MAIN_THREADSTATE = nullptr;
 class ExecutePythonScript : public QRunnable {
 public:
   ExecutePythonScript(const PythonInterpreter &interpreter, const Code &source)
-    : QRunnable(), m_interp(interpreter), m_src(source.str()) {}
+      : QRunnable(), m_interp(interpreter), m_src(source.str()) {}
 
   void run() {
-    std::cerr << "ExecutePythonScript::run() - In thread " << QThread::currentThread() << "\n";
-    auto *pythreadState = PyThreadState_New(PyInterpreterState_Head());
-    PyEval_AcquireThread(pythreadState);
+    std::cerr << "ExecutePythonScript::run()\n";
+    std::cerr << "    This thread state on entry:  "
+              << PyGILState_GetThisThreadState() << "\n";
+    std::cerr << "    GIL on entry: " << PyGILState_Check2() << "\n";
 
-    std::cerr << "Current Python threadstate " << PyThreadState_Get() << "\n";
+    auto gilstate = PyGILState_Ensure();
+    std::cerr << "    This thread state after acquire: "
+              << PyGILState_GetThisThreadState() << "\n";
+    std::cerr << "    GIL after acquire: " << PyGILState_Check2() << "\n";
+
+    //    PyThreadState *tcur = (PyThreadState
+    //    *)PyGILState_GetThisThreadState();
+    //    int current(0);
+    //    if (tcur == NULL) {
+    //        /* Create a new thread state for this thread */
+    //        tcur = PyThreadState_New(THREADSTATE_INIT->interp);
+    //        current = 0; /* new thread state is never current */
+    //    }
+    //    else
+    //        current = PyThreadState_IsCurrent(tcur);
+    //    if (current == 0) {
+    //        PyEval_RestoreThread(tcur);
+    //    }
+
     PyObject *codeObject = m_interp.toByteCode(m_src.toAscii().data());
     PyObject *result = m_interp.executeByteCode(codeObject);
     if (!result) {
       PyErr_Clear();
     }
 
-    PyEval_ReleaseThread(pythreadState);
+    PyGILState_Release(gilstate);
+    std::cerr << "    This thread state after release: "
+              << PyGILState_GetThisThreadState() << "\n";
+    std::cerr << "    GIL after release: " << PyGILState_Check2() << "\n";
   }
 
 private:
-  const PythonInterpreter & m_interp;
+  const PythonInterpreter &m_interp;
   QString m_src;
 };
 }
@@ -52,15 +86,16 @@ PythonInterpreter::PythonInterpreter(QObject *parent)
     : QObject(parent), m_locals(NULL) {
   Py_Initialize();
   PyEval_InitThreads();
-  MAIN_THREADSTATE = PyThreadState_Get();
-  std::cerr << "Current Python threadstate " << MAIN_THREADSTATE << "\n";
+  THREADSTATE_INIT = PyGILState_GetThisThreadState();
+  std::cerr << "PythonInterpreter starting. Main Thread state - "
+            << THREADSTATE_INIT << "\n";
 
   // Store the main module as context for execution
   PyObject *mainModule = PyImport_AddModule("__main__");
   m_locals = PyDict_Copy(PyModule_GetDict(mainModule));
 
   // Set a null threadstate to ensure the acquire call doesn't deadlock
-  PyEval_SaveThread();
+  // PyEval_SaveThread();
 }
 
 /**
@@ -77,8 +112,22 @@ PythonInterpreter::~PythonInterpreter() {
  * @param code
  */
 void PythonInterpreter::execute(const Code &code) const {
-  std::cerr << "PythonInterpreter::execute - In thread " << QThread::currentThread() << "\n";
-  QThreadPool::globalInstance()->start(new ExecutePythonScript(*this, code));
+  // QThreadPool::globalInstance()->start(new ExecutePythonScript(*this, code));
+  std::cerr << "PythonInterpreter::execute() - GIL: " << PyGILState_Check2()
+            << "\n";
+
+  PyThreadState *tstate = nullptr;
+  if (PyGILState_Check2()) {
+    tstate = PyEval_SaveThread();
+  }
+  ExecutePythonScript pythonScript(*this, code);
+  auto future = QtConcurrent::run(pythonScript, &ExecutePythonScript::run);
+  while (future.isRunning()) {
+    QApplication::processEvents();
+  }
+  if (tstate) {
+    PyEval_RestoreThread(tstate);
+  }
 }
 
 /**
@@ -112,11 +161,18 @@ PyObject *PythonInterpreter::toByteCode(const char *src) const {
 /**
  * Takes a Python bytcode object and executes it. Note: No check on the code
  * object is performed.
- * @param codeObject A code object, usually the result of a Py_CompileString call
- * @param context An optional Py_DICT type describing the current environment context. If null
+ * @param codeObject A code object, usually the result of a Py_CompileString
+ * call
+ * @param context An optional Py_DICT type describing the current environment
+ * context. If null
  * the default context of the main interpreter is used.
  */
-PyObject *PythonInterpreter::executeByteCode(PyObject *codeObject, PyObject *context) const {
-  if(!context) context = m_locals;
-  return PyEval_EvalCode((PyCodeObject *)codeObject, context, context);
+PyObject *PythonInterpreter::executeByteCode(PyObject *codeObject,
+                                             PyObject *context) const {
+  if (!context)
+    context = PyDict_Copy(m_locals);
+  auto *result = PyEval_EvalCode((PyCodeObject *)codeObject, context, context);
+  if (!context)
+    Py_DECREF(context);
+  return result;
 }
