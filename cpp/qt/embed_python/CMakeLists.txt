@@ -29,6 +29,7 @@ include_directories (${PYTHON_INCLUDE_DIR})
 set (SRC_FILES
     code.cpp
     codeeditor.cpp
+    executescript.cpp
     main.cpp
     mainwindow.cpp
     pythoninterpreter.cpp
@@ -37,6 +38,7 @@ set (SRC_FILES
 set (INC_FILES
     code.h
     codeeditor.h
+    executescript.h
     mainwindow.h
     pythoninterpreter.h
 )

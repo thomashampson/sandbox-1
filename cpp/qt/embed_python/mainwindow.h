@@ -63,8 +63,9 @@ protected:
 
 private slots:
   void about();
-  void appendToPythonPath();
+  void importMatplotlib();
   void executeCurrentSource();
+  void abort();
 
 private:
   void createActions();
@@ -81,8 +82,9 @@ private:
   QMenu *helpMenu;
   QMenu *pythonMenu;
 
-  QAction *pathAppend;
+  QAction *importMPL;
   QAction *execScript;
+  QAction *abortScript;
   QAction *exitAct;
   QAction *aboutAct;
   QAction *aboutQtAct;

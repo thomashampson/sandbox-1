@@ -26,21 +26,27 @@ void MainWindow::about() {
                         "use an embedded python interpreter"));
 }
 
-void MainWindow::appendToPythonPath() {
-  QString path = "/mnt/data1/Scripts";
-  m_interpreter->sysPathAppend(path);
+void MainWindow::importMatplotlib() {
+  m_interpreter->importMatplotlib();
 }
 
 void MainWindow::executeCurrentSource() {
-  m_interpreter->execute(editor->sourceCode());
+    m_interpreter->execute(editor->sourceCode());
+}
+
+void MainWindow::abort() {
+  m_interpreter->abort();
 }
 
 void MainWindow::createActions() {
-  pathAppend = new QAction(tr("&Append To Path"), this);
-  connect(pathAppend, SIGNAL(triggered()), this, SLOT(appendToPythonPath()));
+  importMPL = new QAction(tr("&Import matplotlib"), this);
+  connect(importMPL, SIGNAL(triggered()), this, SLOT(importMatplotlib()));
 
   execScript = new QAction(tr("Execute"), this);
   connect(execScript, SIGNAL(triggered()), this, SLOT(executeCurrentSource()));
+
+  abortScript = new QAction(tr("Abort"), this);
+  connect(abortScript, SIGNAL(triggered()), this, SLOT(abort()));
 
   exitAct = new QAction(tr("E&xit"), this);
   exitAct->setShortcuts(QKeySequence::Quit);
@@ -63,8 +69,9 @@ void MainWindow::createMenus()
   fileMenu->addAction(exitAct);
 
   pythonMenu = menuBar()->addMenu(tr("&Python"));
-  pythonMenu->addAction(pathAppend);
+  pythonMenu->addAction(importMPL);
   pythonMenu->addAction(execScript);
+  pythonMenu->addAction(abortScript);
 
   menuBar()->addSeparator();
 

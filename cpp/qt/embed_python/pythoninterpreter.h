@@ -27,18 +27,25 @@ public:
 
   ///@{
   ///@name High-level API
-  void execute(const Code & code) const;
-  void sysPathAppend(const QString & path) const;
+  void execute(const Code & code);
+  void abort();
+  void importMatplotlib() const;
+  void saveThreadID(long tid);
   ///@}
 
   ///@{
   ///@name Low-level API
   PyObject *toByteCode(const char *src) const;
   PyObject *executeByteCode(PyObject *codeObject, PyObject *context = nullptr) const;
+  void raiseKeyboardInterrupt() const;
   ///@}
+
+signals:
+  void abortScript();
 
 private:
   PyObject *m_locals;
+  long m_threadid;
 };
 
 #endif // PYTHONINTERPRETER_H
