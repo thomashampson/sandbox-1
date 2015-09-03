@@ -9,7 +9,7 @@ SquareMatrix create(size_t nrows) {
 }
 
 SquareMatrix createComplex(size_t nrows, double x) {
-  if(x > 1.0) {
+  if (x > 1.0) {
     SquareMatrix s1(nrows);
     return s1;
   } else {
@@ -27,6 +27,6 @@ int main() {
   cerr << "------ construct from return value (complex) ----\n";
   SquareMatrix m3(createComplex(3, 1.1));
   cerr << "------ construct from temporary ----\n";
-  SquareMatrix m4(create(2)*2);
+  SquareMatrix m4(create(2) * 2);
   cerr << "-----------------------------\n";
 }
