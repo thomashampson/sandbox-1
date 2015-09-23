@@ -21,7 +21,9 @@ Assumes the base image is in `/var/cache/pbuilder/$DISTRIB-amd64/base.cow`
 HOME=$HOME DIST=$DISTRIB cowbuilder --login --basepath /var/cache/pbuilder/$DISTRIB-amd64/base.cow --save-after-login
 ```
 
-### Build binaries
+### Build binaries 
+
+Not techincally required for upload to PPA but it's good to check the build as it takes a while on Launchpad.
 
 ```
 cd extracted-source
@@ -33,6 +35,15 @@ cowbuilder --buildresult $PWD \
 --basepath "/var/cache/pbuilder/$DISTRIB-amd64/base.cow" --debbuildopts "-sa" \
 --configfile="${HOME}/.pbuilderrc"
 ```
+
+### Sign changes file
+
+Default result path for cowbuilder is `/var/cache/pbuilder/$DISTRIB-amd64/result`
+```
+debsign /var/cache/pbuilder/$DISTRIB-amd64/result/package-name-version.changes
+```
+
+You will be asked twice for your GPG passphrase for your installed key.
 
 ### Build binaries with pdebuild
 
