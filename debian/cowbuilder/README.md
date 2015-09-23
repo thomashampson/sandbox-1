@@ -36,14 +36,23 @@ cowbuilder --buildresult $PWD \
 --configfile="${HOME}/.pbuilderrc"
 ```
 
-### Sign changes file
+### Sign source changes file
 
-Default result path for cowbuilder is `/var/cache/pbuilder/$DISTRIB-amd64/result`
 ```
-debsign /var/cache/pbuilder/$DISTRIB-amd64/result/package-name-version.changes
+debsign package-name-version_source.changes
 ```
 
 You will be asked twice for your GPG passphrase for your installed key.
+
+### Publish to PPA
+
+See lauchpad information on your repository for what to fill in here.
+
+**Important**: Only upload the `_source` changes file not the one built for the binaries. 
+
+```
+dput ppa:PROJECT/repository package-name-version_source.changes
+```
 
 ### Build binaries with pdebuild
 
