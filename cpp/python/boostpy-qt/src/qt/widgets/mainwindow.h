@@ -57,6 +57,9 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
 
+    virtual void pre_process();
+    virtual void post_process();
+
 protected:
     void closeEvent(QCloseEvent *event);
 

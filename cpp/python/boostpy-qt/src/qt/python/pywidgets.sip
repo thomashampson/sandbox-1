@@ -6,11 +6,11 @@
 %Import QtCore/QtCoremod.sip
 %Import QtGui/QtGuimod.sip
 
-//class MainWindow : QMainWindow
-//{
-//%TypeHeaderCode
-//#include "widgets/mainwindow.h"
-//%End
-//private:
-//  MainWindow();
-//};
+class MainWindow : QMainWindow
+{
+%TypeHeaderCode
+#include "widgets/mainwindow.h"
+%End
+public:
+ MainWindow();
+};

@@ -42,6 +42,7 @@
 #include <QtGui>
 
 #include "mainwindow.h"
+
 //! [0]
 
 //! [1]
@@ -65,6 +66,15 @@ MainWindow::MainWindow()
     setUnifiedTitleAndToolBarOnMac(true);
 }
 //! [2]
+
+void MainWindow::pre_process() {
+  qCritical() << "Base class pre process\n";
+}
+
+void MainWindow::post_process() {
+  qCritical() << "Base class post process\n";
+}
+
 
 //! [3]
 void MainWindow::closeEvent(QCloseEvent *event)
