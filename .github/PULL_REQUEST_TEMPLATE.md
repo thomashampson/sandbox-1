@@ -1,15 +1,17 @@
-Thanks for the changes. Here's a few things that we'll use to start the review process:
-
-#### Main Reviewer ####
-
-Please comment on the following:
-
-##### Pull Request #####
+Thanks for the changes! Please make sure these items are addressed in opening your pull request to make reviewing easier:
 
 - [ ] Does the title summarize the changes, i.e. it's not the automatically generated one?
 - [ ] Is an issue link included/required, e.g. "Fixes #XXXX"? If there is an issue link do the changes look sensible and consistent with issue description?
 - [ ] Are there adequate testing instructions?
 - [ ] A link to the updated release notes has been provided or no release note updates were necessary?
+
+\**Place your additional text here*\*
+
+---
+
+#### Main Reviewer ####
+
+Please comment on the following:
 
 ##### Code Review #####
 
@@ -35,3 +37,4 @@ Please comment on the following:
 - [ ] Have adequate tests, both success & failure cases, been performed?
 - [ ] Has the code been reviewed?
 - [ ] Ready to go? Hit `Merge`!
+
