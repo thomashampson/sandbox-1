@@ -33,26 +33,15 @@ endif()
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTOUIC ON)
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
-find_package (Qt4 REQUIRED QtCore QtGui)
+find_package (Qt5Widgets REQUIRED)
 
 # Python
 find_package (PythonInterp REQUIRED)
 find_package (PythonLibs REQUIRED)
 
-# Sip, PyQt4
-find_package ( PyQt4 REQUIRED )
+# Sip, PyQt5
 find_package ( SIP REQUIRED )
-separate_arguments ( PYQT4_SIP_FLAGS )
-
-set (SIP_SRC _mplcpp.sip)
-set (SIP_OUTFILE ${CMAKE_CURRENT_BINARY_DIR}/sip_mplcpppart0.cpp)
-add_custom_command (OUTPUT ${SIP_OUTFILE}
-  COMMAND ${SIP_EXECUTABLE} -I ${PYQT4_SIP_DIR} ${PYQT4_SIP_FLAGS}
-    -c ${CMAKE_CURRENT_BINARY_DIR} -j1 -w -o
-    ${CMAKE_CURRENT_LIST_DIR}/${SIP_SRC}
-  DEPENDS ${SIP_SRC}
-  COMMENT "Generating Python bindings"
-)
+find_package ( PyQt5 REQUIRED )
 
 include_directories ( SYSTEM ${SIP_INCLUDE_DIR} )
 
@@ -69,4 +58,4 @@ set (HEADERS
 )
 
 add_executable (mplcpp ${SRCS} ${SIP_OUTFILE})
-target_link_libraries (mplcpp Qt4::QtGui ${PYTHON_LIBRARIES})
+target_link_libraries (mplcpp Qt5::Widgets ${PYTHON_LIBRARIES})
