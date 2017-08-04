@@ -43,9 +43,8 @@ function (find_pyqt major_version)
         set (PYQT${major_version}_PYUIC "${CMAKE_MATCH_1}" CACHE STRING "Location of the pyuic script")
 
         if (NOT IS_DIRECTORY "${PYQT${major_version}_SIP_DIR}")
-          message (WARNING "The base directory where PyQt4's SIP files are installed could not be determined.\n"
-            "This usually means PyQt4 was built with its new build system and pyqtconfig.py is not present.\n"
-            "Please set the PYQT${major_version}_SIP_DIR variable manually.")
+          message (WARNING "The base directory where PyQt${major_version}'s SIP files are installed could not be determined.\n"
+            "This usually means the PyQt5 development package is missing.\n")
         else()
           set (PYQT${major_version}_FOUND TRUE )
     endif()

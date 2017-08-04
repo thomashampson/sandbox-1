@@ -2,6 +2,7 @@
 #include "sip.h"
 #include <QVBoxLayout>
 
+
 static const sipAPIDef *sip_api()
 {
   static const sipAPIDef *sip_API = 0;

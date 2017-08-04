@@ -1,11 +1,12 @@
 #include "MainWindow.h"
-#include "MplPlot.h"
 #include "ui_mainwindow.h"
+
+#include "MplFigureCanvas.h"
 
 // -----------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
   : QMainWindow(parent, flags), m_ui(new Ui_MainWindow) {
-  setCentralWidget(new MplPlot(this));
+  setCentralWidget(new Python::MplFigureCanvas(this));
 }
 
 // -----------------------------------------------------------------------------

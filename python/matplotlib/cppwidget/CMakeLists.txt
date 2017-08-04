@@ -34,9 +34,7 @@ find_package (PythonLibs REQUIRED)
 find_package (SIP REQUIRED)
 
 # Qt
-set (CMAKE_AUTOMOC ON)
-set (CMAKE_AUTOUIC ON)
-set (CMAKE_INCLUDE_CURRENT_DIR ON)
+# Automoc & Autouic won't work while we are building against Qt4 & Qt5
 
 # Qt 4
 find_package (Qt4 REQUIRED QtCore QtGui)
@@ -47,18 +45,28 @@ find_package (Qt5Widgets REQUIRED)
 find_package (PyQt5 REQUIRED)
 
 include_directories ( SYSTEM ${SIP_INCLUDE_DIR} )
+include_directories ( ${CMAKE_CURRENT_LIST_DIR}/include )
 
 # app
 set (SRCS
-  main.cpp
-  MainWindow.cpp
-  MplPlot.cpp
+  src/main.cpp
+  src/MainWindow.cpp
+  src/MplFigureCanvas.cpp
+  src/PythonObject.cpp
 )
 
-set (HEADERS
-  MainWindow.h
-  MplPlot.h
+set (UI_FILES
+  include/mainwindow.ui
 )
 
-add_executable (mplcpp ${SRCS} ${SIP_OUTFILE})
-target_link_libraries (mplcpp Qt5::Widgets ${PYTHON_LIBRARIES})
+set (MOC_HEADERS
+  include/MainWindow.h
+  include/MplFigureCanvas.h
+)
+
+set (NOMOC_HEADERS
+  include/PythonObject.h
+)
+
+add_subdirectory (qt4-target)
+add_subdirectory (qt5-target)
