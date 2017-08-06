@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0.0)
+cmake_minimum_required (VERSION 3.5.0)
 
 foreach (p
     CMP0020 # CMake 2.8.11
@@ -28,6 +28,22 @@ elseif (COMPILER_SUPPORTS_CXX0X)
   set (CMAKE_CXX_FLAGS "$${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
+# Shared libraries
+set (BUILD_SHARED_LIBS ON)
+
+# External dependencies
+# Download and unpack cxxtest at configure time
+configure_file(cmake/CMakeLists.txt.cxxtest.in
+    cxxtest-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest-download )
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest-download )
+set (CXXTEST_INCLUDE_DIR ${CMAKE_BINARY_DIR}/cxxtest-src)
+set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE ${CMAKE_BINARY_DIR}/cxxtest-src/python/scripts/cxxtestgen)
+find_package (CxxTest)
+enable_testing()
+
 # Python
 find_package (PythonInterp REQUIRED)
 find_package (PythonLibs REQUIRED)
@@ -45,28 +61,10 @@ find_package (Qt5Widgets REQUIRED)
 find_package (PyQt5 REQUIRED)
 
 include_directories ( SYSTEM ${SIP_INCLUDE_DIR} )
-include_directories ( ${CMAKE_CURRENT_LIST_DIR}/include )
 
-# app
-set (SRCS
-  src/main.cpp
-  src/MainWindow.cpp
-  src/MplFigureCanvas.cpp
-  src/PythonObject.cpp
-)
+include (QtTargetFunctions)
 
-set (UI_FILES
-  include/mainwindow.ui
-)
-
-set (MOC_HEADERS
-  include/MainWindow.h
-  include/MplFigureCanvas.h
-)
-
-set (NOMOC_HEADERS
-  include/PythonObject.h
-)
-
-add_subdirectory (qt4-target)
-add_subdirectory (qt5-target)
+# libraries
+add_subdirectory (widgets)
+# applications
+#add_subdirectory (applications)

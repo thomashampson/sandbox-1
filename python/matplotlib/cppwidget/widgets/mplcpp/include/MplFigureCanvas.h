@@ -11,6 +11,9 @@ namespace Python {
  *
  * It uses the Agg version of the Qt matplotlib backend that matches the
  * Qt version that the library is compiled against.
+ *
+ * This replicates the example of embedding in Python from
+ * https://matplotlib.org/examples/user_interfaces/embedding_in_qt5.html
  */
 class MplFigureCanvas : public QWidget {
   Q_OBJECT

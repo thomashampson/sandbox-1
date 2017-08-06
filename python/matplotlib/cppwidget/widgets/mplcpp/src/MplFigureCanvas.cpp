@@ -7,7 +7,6 @@ namespace Python {
  */
 MplFigureCanvas::MplFigureCanvas(QWidget *parent)
     : QWidget(parent), m_canvasType() {}
-
 /**
  * @brief Destroys the object
  */
