@@ -62,9 +62,10 @@ find_package (PyQt5 REQUIRED)
 
 include_directories ( SYSTEM ${SIP_INCLUDE_DIR} )
 
+# Utilities for defining targets
 include (QtTargetFunctions)
 
 # libraries
 add_subdirectory (widgets)
 # applications
-#add_subdirectory (applications)
+add_subdirectory (applications)

@@ -1,7 +1,4 @@
 # Rules for matplotlib cpp library
-
-
-
 set (LIB_SRCS
   src/MplFigureCanvas.cpp
   src/PythonObject.cpp
@@ -15,6 +12,10 @@ set (NOMOC_HEADERS
   include/PythonObject.h
 )
 
-
-mtd_add_qt_library (TARGET_NAME mplcpp QT_VERSION 4 SRC ${LIB_SRCS} MOC ${MOC_HEADERS}
-                    NOMOC ${NOMOC_HEADERS} INCLUDES ${CMAKE_CURRENT_LIST_DIR}/include)
+set (INCLUDES
+  ${CMAKE_CURRENT_LIST_DIR}/include
+  ${CMAKE_SOURCE_DIR}/widgets/mplcpp/include
+)
+# Target
+mtd_add_qt4_and_qt5_library (TARGET_NAME mplcpp SRC ${LIB_SRCS} MOC ${MOC_HEADERS}
+                             NOMOC ${NOMOC_HEADERS} INCLUDE_DIRS ${INCLUDES})
