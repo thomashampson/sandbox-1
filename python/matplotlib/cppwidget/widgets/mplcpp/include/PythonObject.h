@@ -63,10 +63,25 @@ public:
   explicit PythonObject(NewRef ref) : m_ptr(ref.ptr) {}
   explicit PythonObject(BorrowedRef ref) : m_ptr(ref.ptr) {}
   ~PythonObject() { detail::xdecref(m_ptr); }
+  /// Copy constructor
+  PythonObject(const PythonObject &other)
+      : m_ptr(detail::incref(other.m_ptr)) {}
+  /// Copy from another object
+  PythonObject &operator=(const PythonObject &other) {
+    if (&other != this)
+      m_ptr = detail::incref(other.m_ptr);
+    return *this;
+  }
 
-  inline Py_ssize_t refCount() const { return Py_REFCNT(m_ptr); }
+  /// Compare two objects. Return true if the refer to the same object.
+  bool operator==(const PythonObject &rhs) const { return m_ptr == rhs.m_ptr; }
+
   /// Return true if this object is the None object
   inline bool isNone() const { return m_ptr == Py_None; }
+  /// Return the reference count of the held object
+  inline Py_ssize_t refCount() const { return Py_REFCNT(m_ptr); }
+  /// Return the raw PyObject ptr handle. Use with care
+  inline PyObject *get() const { return m_ptr; }
 
 private:
   PyObject *m_ptr;
