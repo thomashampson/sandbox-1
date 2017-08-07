@@ -64,6 +64,10 @@ public:
   explicit PythonObject(BorrowedRef ref) : m_ptr(ref.ptr) {}
   ~PythonObject() { detail::xdecref(m_ptr); }
 
+  inline Py_ssize_t refCount() const { return Py_REFCNT(m_ptr); }
+  /// Return true if this object is the None object
+  inline bool isNone() const { return m_ptr == Py_None; }
+
 private:
   PyObject *m_ptr;
 };

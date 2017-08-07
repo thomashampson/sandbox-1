@@ -19,3 +19,6 @@ set (INCLUDES
 # Target
 mtd_add_qt4_and_qt5_library (TARGET_NAME mplcpp SRC ${LIB_SRCS} MOC ${MOC_HEADERS}
                              NOMOC ${NOMOC_HEADERS} INCLUDE_DIRS ${INCLUDES})
+
+# Tests
+add_subdirectory (test)

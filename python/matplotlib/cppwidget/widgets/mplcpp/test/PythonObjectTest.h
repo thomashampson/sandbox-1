@@ -4,7 +4,7 @@
 #include "cxxtest/TestSuite.h"
 #include "cxxtest/GlobalFixture.h"
 
-#include <Python.h>
+#include "PythonObject.h"
 
 /**
  * The cxxtest code ensures that the setup/tearDownWorld methods
@@ -36,7 +36,17 @@ public:
   static PythonObjectTest *createSuite() { return new PythonObjectTest; }
   static void destroySuite(PythonObjectTest *suite) { delete suite; }
 
-  void test_Default_Constructor_Gives_None() { TS_FAIL("Add a test"); }
+  void test_Default_Constructor_Gives_None() {
+    Python::PythonObject obj;
+    TSM_ASSERT("Default object should be None", obj.isNone())
+  }
+
+  void test_Construction_With_New_Reference_Does_Not_Alter_Reference_Count() {
+    Python::PythonObject one(Python::NewRef(PyList_New(1)));
+    TSM_ASSERT_EQUALS("Reference count should not have changed on"
+                      "construction ",
+                      1, one.refCount());
+  }
 };
 
 #endif // PYTHONOBJECTTEST_H
