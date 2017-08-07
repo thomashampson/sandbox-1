@@ -28,6 +28,9 @@ elseif (COMPILER_SUPPORTS_CXX0X)
   set (CMAKE_CXX_FLAGS "$${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
+# Flags
+set (CMAKE_CXX_FLAGS "$${CMAKE_CXX_FLAGS} -Wall -Wextra")
+
 # Shared libraries
 set (BUILD_SHARED_LIBS ON)
 
