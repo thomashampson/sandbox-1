@@ -23,6 +23,7 @@ public:
 
 private:
   Python::PythonObject m_pyCanvas;
+  Python::PythonObject m_axes;
 };
 }
 #endif // MPLFIGURECANVAS_H

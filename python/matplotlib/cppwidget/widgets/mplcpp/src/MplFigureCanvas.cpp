@@ -1,9 +1,8 @@
 #include "MplFigureCanvas.h"
+#include "PythonErrors.h"
 #include "SipUtils.h"
 
 #include <QVBoxLayout>
-
-#include <iostream>
 
 namespace {
 #if QT_VERSION >= QT_VERSION_CHECK(4, 0, 0) &&                                 \
@@ -21,34 +20,47 @@ const char *MPL_QT_BACKEND = "matplotlib.backends.backend_qt5agg";
 #else
 #error "Unknown Qt version. Cannot determine matplotlib backend."
 #endif
+
+// Return static instance of figure type
+const Python::PythonObject &mplFigureType() {
+  static Python::PythonObject figureType;
+  if (figureType.isNone())
+    figureType = Python::getAttrOnModule("matplotlib.figure", "Figure");
+  return figureType;
+}
+
+// Return static instance of figure canvas type
+const Python::PythonObject &mplFigureCanvasType() {
+  static Python::PythonObject figureCanvasType;
+  if (figureCanvasType.isNone()) {
+    // Importing PyQt version first helps matplotlib select the correct backend.
+    // We should do this in some kind of initialisation routine
+    Python::importModule(PYQT_MODULE);
+    figureCanvasType =
+        Python::getAttrOnModule(MPL_QT_BACKEND, "FigureCanvasQTAgg");
+  }
+  return figureCanvasType;
+}
 }
 
 namespace Python {
 /**
- * @brief Constructs a wrapper around a matplotlib Qt canvas to display plots
+ * @brief Constructs a matplotlib Qt canvas containing a single subplot
  * @param parent A pointer to the parent widget, can be nullptr
  */
 MplFigureCanvas::MplFigureCanvas(QWidget *parent)
-    : QWidget(parent), m_pyCanvas() {
+    : QWidget(parent), m_pyCanvas(), m_axes() {
   setLayout(new QVBoxLayout);
-
-  // Importing PyQt version first helps matplotlib select the correct backend.
-  // We should do this in some kind of initialisation routine
-  PythonObject pyQtModule(NewRef(PyImport_ImportModule(PYQT_MODULE)));
 
   // Create a figure and attach it to a canvas object. This creates a
   // blank widget
-  PythonObject mplFigureModule(
-      NewRef(PyImport_ImportModule("matplotlib.figure")));
-  PythonObject figureType(mplFigureModule.getAttr("Figure"));
-  PythonObject figure(NewRef(PyObject_CallObject(figureType.get(), NULL)));
-
-  PythonObject mplQtBackend(NewRef(PyImport_ImportModule(MPL_QT_BACKEND)));
-  auto canvasType = mplQtBackend.getAttr("FigureCanvasQTAgg");
-  auto instance = PyObject_CallFunction(canvasType.get(), "(O)", figure.get());
+  PythonObject figure(NewRef(PyObject_CallObject(mplFigureType().get(), NULL)));
+  m_axes = PythonObject(
+      NewRef(PyObject_CallMethod(figure.get(), "add_subplot", "i", 111)));
+  auto instance =
+      PyObject_CallFunction(mplFigureCanvasType().get(), "(O)", figure.get());
   if (!instance) {
-    PyErr_Print();
-    throw std::runtime_error("An error occurred");
+    throw PythonError(errorToString());
   }
   m_pyCanvas = PythonObject(NewRef(instance));
   auto cpp = static_cast<QWidget *>(sipUnwrap(m_pyCanvas.get()));
