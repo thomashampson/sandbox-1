@@ -4,7 +4,7 @@
 #include "PythonObject.h"
 
 namespace Python {
-void *sipUnrwap(PyObject *obj_ptr);
+void *sipUnwrap(PyObject *obj_ptr);
 }
 
 #endif // SIPUTILS_H

@@ -47,7 +47,7 @@ namespace Python {
  * @return An opaque pointer to the memory of the C++ object
  * The result will need a static_cast applied to it to be useful.
  */
-void *sipUnrwap(PyObject *obj_ptr) {
+void *sipUnwrap(PyObject *obj_ptr) {
   if (!PyObject_TypeCheck(obj_ptr, sip_api()->api_wrapper_type)) {
     throw std::runtime_error("sipUnwrap() - Object is not a wrapped type.");
   }

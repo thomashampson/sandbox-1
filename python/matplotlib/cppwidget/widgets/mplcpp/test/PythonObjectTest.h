@@ -36,6 +36,7 @@ public:
   static PythonObjectTest *createSuite() { return new PythonObjectTest; }
   static void destroySuite(PythonObjectTest *suite) { delete suite; }
 
+  // --------------------------- Success tests -----------------------------
   void test_Default_Constructor_Gives_None() {
     Python::PythonObject obj;
     TSM_ASSERT("Default object should be None", obj.isNone())
@@ -79,6 +80,20 @@ public:
     TSM_ASSERT_DIFFERS(
         "Different underlying objects should not equal each other", original,
         other);
+  }
+
+  void test_Known_Attribute_Returns_Expected_Object() {
+    Python::PythonObject obj(Python::NewRef(PyList_New(1)));
+    auto attrObj = obj.getAttr("__len__");
+    TSM_ASSERT("Attribute object should not be None", !obj.isNone());
+  }
+
+  // --------------------------- Failure tests -----------------------------
+  void test_Unknown_Attribute_Throws_Exception() {
+    Python::PythonObject obj(Python::NewRef(PyList_New(1)));
+    TSM_ASSERT_THROWS("getAttr should throw for non-existant attribute",
+                      obj.getAttr("not_a_method"),
+                      Python::AttributeNotFoundError);
   }
 };
 

@@ -22,7 +22,7 @@ public:
   ~MplFigureCanvas();
 
 private:
-  Python::PythonObject m_canvasType;
+  Python::PythonObject m_pyCanvas;
 };
 }
 #endif // MPLFIGURECANVAS_H
