@@ -1,6 +1,7 @@
 # Rules for matplotlib cpp library
 set (LIB_SRCS
   src/MplFigureCanvas.cpp
+  src/PythonErrors.cpp
   src/PythonObject.cpp
   src/SipUtils.cpp
 )
@@ -10,6 +11,7 @@ set (MOC_HEADERS
 )
 
 set (NOMOC_HEADERS
+  include/PythonErrors.h
   include/PythonObject.h
   include/SipUtils.h
 )

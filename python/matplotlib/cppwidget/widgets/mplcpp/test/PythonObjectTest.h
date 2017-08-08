@@ -5,6 +5,7 @@
 #include "cxxtest/GlobalFixture.h"
 
 #include "PythonObject.h"
+#include "PythonErrors.h"
 
 /**
  * The cxxtest code ensures that the setup/tearDownWorld methods
@@ -92,8 +93,7 @@ public:
   void test_Unknown_Attribute_Throws_Exception() {
     Python::PythonObject obj(Python::NewRef(PyList_New(1)));
     TSM_ASSERT_THROWS("getAttr should throw for non-existant attribute",
-                      obj.getAttr("not_a_method"),
-                      Python::AttributeNotFoundError);
+                      obj.getAttr("not_a_method"), Python::PythonError);
   }
 };
 

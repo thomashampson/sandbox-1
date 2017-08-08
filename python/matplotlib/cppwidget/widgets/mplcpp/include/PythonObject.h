@@ -2,7 +2,6 @@
 #define PYTHONOBJECT_H
 
 #include <Python.h>
-#include <stdexcept>
 
 namespace Python {
 
@@ -54,15 +53,6 @@ struct BorrowedRef {
   PyObject *ptr;
 };
 
-class AttributeNotFoundError : std::exception {
-public:
-  explicit AttributeNotFoundError(std::string msg) : m_msg(msg) {}
-  const char *what() const noexcept override { return m_msg.c_str(); }
-
-private:
-  std::string m_msg;
-};
-
 /**
  * @brief A handle for Python objects to handle reference counting in an
  * RAII style. By default an object is construct as None.
@@ -99,5 +89,13 @@ public:
 private:
   PyObject *m_ptr;
 };
+
+//-----------------------------------------------------------------------------
+// Utilities
+//----------------------------------------------------------------------------
+/// Import a module and return a new reference
+PythonObject importModule(const char *name);
+/// Import and return the named object from the given module
+PythonObject getAttrOnModule(const char *moduleName, const char *attrName);
 }
 #endif // PYTHONOBJECT_H
