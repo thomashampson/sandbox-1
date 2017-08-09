@@ -19,11 +19,7 @@ Python::PythonObject Python::PythonObject::getAttr(const char *name) const {
   if (objPtr)
     return PythonObject(NewRef(objPtr));
   else {
-    std::string msg("Type ");
-    msg.append(m_ptr->ob_type->tp_name)
-        .append(" has no attribute ")
-        .append(name);
-    throw PythonError(msg);
+    throw PythonError(errorToString());
   }
 }
 

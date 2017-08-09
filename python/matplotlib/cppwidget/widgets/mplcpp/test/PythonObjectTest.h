@@ -91,7 +91,6 @@ public:
                       moved.refCount());
   }
 
-
   void test_Equality_Operator() {
     Python::PythonObject original(Python::NewRef(PyList_New(1)));
     TSM_ASSERT_EQUALS("Objects should equal each other", original, original);
