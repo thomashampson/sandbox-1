@@ -4,6 +4,8 @@
 #include "PythonObject.h"
 #include "Numpy.h"
 
+#include <array>
+
 namespace Python {
 
 /**
@@ -23,6 +25,9 @@ public:
   template <typename Iterable>
   NDArray1D(const Iterable &data)
       : PythonObject(copyToNDArray(data)) {}
+
+  // Return the shape of the array in numpy parlance
+  std::array<size_t, 1> shape() const;
 };
 }
 

@@ -2,6 +2,7 @@
 #
 set (TEST_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/PythonObjectTest.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/NDArray1DTest.h
 )
 
 cxxtest_add_test (mplcpp-test-qt4 mplcpp-test.cpp ${TEST_HEADERS})

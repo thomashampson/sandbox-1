@@ -28,7 +28,9 @@ template <typename Iterable> PythonObject copyToNDArray(const Iterable &data) {
   static_assert(std::is_same<typename Iterable::value_type, double>::value,
                 "Element type must be double.");
   npy_intp length = static_cast<npy_intp>(data.size());
-  auto ndarray = PyArray_SimpleNew(1, &length, NPY_DOUBLE);
+  auto ndarray =
+      PyArray_New(&PyArray_Type, 1, &length, NPY_DOUBLE, nullptr, nullptr,
+                  sizeof(npy_double), NPY_ARRAY_CARRAY, nullptr);
   auto emptyData =
       static_cast<double *>(PyArray_DATA((PyArrayObject *)ndarray));
   std::copy(std::begin(data), std::end(data), emptyData);
