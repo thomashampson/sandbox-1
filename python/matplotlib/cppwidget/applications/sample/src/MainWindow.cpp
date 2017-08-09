@@ -9,9 +9,14 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
       m_plotCanvas(new Python::MplFigureCanvas(111, this)) {
   setCentralWidget(m_plotCanvas);
 
-  std::vector<double> x(10, 5.0);
+  std::vector<double> x(10);
+  double value(0.0);
+  std::generate_n(std::begin(x), 10, [&value]() { return value++; });
   auto axes = m_plotCanvas->axes();
-  axes.plot(x, x, "ro");
+  axes.plot(x, x, "r-");
+  value = 0.0;
+  std::generate_n(std::begin(x), 10, [&value]() { return 2 + value++; });
+  axes.plot(x, x, "bo");
   m_plotCanvas->draw();
 }
 
