@@ -1,10 +1,14 @@
 #include "MplFigureCanvas.h"
+#include "MplAxes.h"
 #include "PythonErrors.h"
 #include "SipUtils.h"
 
 #include <QVBoxLayout>
 
 namespace {
+//------------------------------------------------------------------------------
+// Static constants/functions
+//------------------------------------------------------------------------------
 #if QT_VERSION >= QT_VERSION_CHECK(4, 0, 0) &&                                 \
     QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
 // Define PyQt version and matplotlib backend
@@ -44,26 +48,45 @@ const Python::PythonObject &mplFigureCanvasType() {
 }
 
 namespace Python {
+//------------------------------------------------------------------------------
+// MplFigureCanvas::Impl - Private implementation
+//------------------------------------------------------------------------------
+class MplFigureCanvas::Impl {
+  friend class MplFigureCanvas;
+  Impl(int subplotLayout) {
+    // Create a figure and attach it to a canvas object. This creates a
+    // blank widget
+    PythonObject figure(
+        NewRef(PyObject_CallObject(mplFigureType().get(), NULL)));
+    m_axes = MplAxes(NewRef(
+        PyObject_CallMethod(figure.get(), "add_subplot", "i", subplotLayout)));
+    auto instance =
+        PyObject_CallFunction(mplFigureCanvasType().get(), "(O)", figure.get());
+    if (!instance) {
+      throw PythonError(errorToString());
+    }
+    m_canvas = PythonObject(NewRef(instance));
+  }
+
+private:
+  PythonObject m_canvas;
+  MplAxes m_axes;
+};
+
+//------------------------------------------------------------------------------
+// MplFigureCanvas
+//------------------------------------------------------------------------------
 /**
  * @brief Constructs a matplotlib Qt canvas containing a single subplot
+ * @param subplotLayout The subplot layout defined in matplotlib's convenience
+ * format. See
+ * https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.subplot
  * @param parent A pointer to the parent widget, can be nullptr
  */
-MplFigureCanvas::MplFigureCanvas(QWidget *parent)
-    : QWidget(parent), m_pyCanvas(), m_axes() {
+MplFigureCanvas::MplFigureCanvas(int subplotLayout, QWidget *parent)
+    : QWidget(parent), m_impl(new Impl(subplotLayout)) {
   setLayout(new QVBoxLayout);
-
-  // Create a figure and attach it to a canvas object. This creates a
-  // blank widget
-  PythonObject figure(NewRef(PyObject_CallObject(mplFigureType().get(), NULL)));
-  m_axes = PythonObject(
-      NewRef(PyObject_CallMethod(figure.get(), "add_subplot", "i", 111)));
-  auto instance =
-      PyObject_CallFunction(mplFigureCanvasType().get(), "(O)", figure.get());
-  if (!instance) {
-    throw PythonError(errorToString());
-  }
-  m_pyCanvas = PythonObject(NewRef(instance));
-  auto cpp = static_cast<QWidget *>(sipUnwrap(m_pyCanvas.get()));
+  auto cpp = static_cast<QWidget *>(sipUnwrap(m_impl->m_canvas.get()));
   assert(cpp);
   layout()->addWidget(cpp);
 }
@@ -71,5 +94,22 @@ MplFigureCanvas::MplFigureCanvas(QWidget *parent)
 /**
  * @brief Destroys the object
  */
-MplFigureCanvas::~MplFigureCanvas() {}
+MplFigureCanvas::~MplFigureCanvas() { delete m_impl; }
+
+/**
+ *
+ * @return A reference to the Axes object
+ */
+MplAxes MplFigureCanvas::axes() const
+{
+  return m_impl->m_axes;
+}
+
+/**
+ * Call FigureCanvas.draw method on base class
+ */
+void MplFigureCanvas::draw()
+{
+  PyObject_CallMethod(m_impl->m_canvas.get(), "draw", "", nullptr);
+}
 }

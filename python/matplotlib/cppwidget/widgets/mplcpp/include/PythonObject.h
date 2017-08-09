@@ -1,7 +1,9 @@
 #ifndef PYTHONOBJECT_H
 #define PYTHONOBJECT_H
 
-#include <Python.h>
+#include "WrapPython.h"
+
+#include <utility>
 
 namespace Python {
 
@@ -70,6 +72,17 @@ public:
   PythonObject &operator=(const PythonObject &other) {
     if (&other != this)
       m_ptr = detail::incref(other.m_ptr);
+    return *this;
+  }
+  /// Move constructor
+  PythonObject(PythonObject &&other) : m_ptr(nullptr) {
+    std::swap(m_ptr, other.m_ptr);
+  }
+  /// Move assignment
+  PythonObject &operator=(PythonObject &&other) {
+    if (this != &other) {
+      std::swap(m_ptr, other.m_ptr);
+    }
     return *this;
   }
 

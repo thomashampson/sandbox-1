@@ -1,8 +1,9 @@
 #ifndef MPLFIGURECANVAS_H
 #define MPLFIGURECANVAS_H
 
-#include "PythonObject.h"
 #include <QWidget>
+
+#include "MplAxes.h"
 
 namespace Python {
 
@@ -18,12 +19,16 @@ namespace Python {
 class MplFigureCanvas : public QWidget {
   Q_OBJECT
 public:
-  explicit MplFigureCanvas(QWidget *parent = 0);
+  explicit MplFigureCanvas(int subplotLayout = 111, QWidget *parent = 0);
   ~MplFigureCanvas();
 
+  MplAxes axes() const;
+  void draw();
+
 private:
-  Python::PythonObject m_pyCanvas;
-  Python::PythonObject m_axes;
+  // Private implementation to keep Python out of headers
+  class Impl;
+  Impl *m_impl;
 };
 }
 #endif // MPLFIGURECANVAS_H

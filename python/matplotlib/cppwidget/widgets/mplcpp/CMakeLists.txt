@@ -1,6 +1,9 @@
 # Rules for matplotlib cpp library
 set (LIB_SRCS
+  src/MplAxes.cpp
   src/MplFigureCanvas.cpp
+  src/NDArray1D.cpp
+  src/Numpy.cpp
   src/PythonErrors.cpp
   src/PythonObject.cpp
   src/SipUtils.cpp
@@ -11,9 +14,13 @@ set (MOC_HEADERS
 )
 
 set (NOMOC_HEADERS
+  include/MplAxes.h
+  include/NDArray1D.h
+  include/Numpy.h
   include/PythonErrors.h
   include/PythonObject.h
   include/SipUtils.h
+  include/WrapPython.h
 )
 
 set (INCLUDES
@@ -22,7 +29,8 @@ set (INCLUDES
 )
 # Target
 mtd_add_qt4_and_qt5_library (TARGET_NAME mplcpp SRC ${LIB_SRCS} MOC ${MOC_HEADERS}
-                             NOMOC ${NOMOC_HEADERS} INCLUDE_DIRS ${INCLUDES})
+                             NOMOC ${NOMOC_HEADERS} INCLUDE_DIRS ${INCLUDES}
+                             LINK_LIBRARIES ${PYTHON_LIBRARIES})
 
 # Tests
 add_subdirectory (test)

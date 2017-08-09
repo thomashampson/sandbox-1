@@ -14,5 +14,4 @@ set (MOC_HEADERS
 
 mtd_add_qt4_and_qt5_executable (TARGET_NAME sample SRC ${APP_SRCS} UI ${UI_FILES}
                                 MOC ${MOC_HEADERS} INCLUDE_DIRS
-                                LINK_LIBRARIES ${PYTHON_LIBRARIES}
                                 MTD_QT_LINK_LIBRARIES mplcpp)

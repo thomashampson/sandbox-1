@@ -7,10 +7,14 @@
 // ------------------------------------------------------------------------------
 class Ui_MainWindow;
 
+namespace Python {
+class MplFigureCanvas;
+}
+
 // ------------------------------------------------------------------------------
 class MainWindow : public QMainWindow {
 
-Q_OBJECT
+  Q_OBJECT
 
 public:
   MainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0);
@@ -18,6 +22,7 @@ public:
 
 private:
   std::unique_ptr<Ui_MainWindow> m_ui;
+  Python::MplFigureCanvas *m_plotCanvas;
 };
 
-#endif //MAINWINDOW_H_
+#endif // MAINWINDOW_H_

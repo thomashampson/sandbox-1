@@ -74,6 +74,24 @@ public:
                       original.refCount());
   }
 
+  void test_Move_Construction_Keeps_Ref_Count_The_Same_On_Moved_To_Object() {
+    // Use something with heap allocation so we know it's a new object
+    Python::PythonObject original(Python::NewRef(PyList_New(1)));
+    Python::PythonObject moved(std::move(original));
+    TSM_ASSERT_EQUALS("New object should have same reference count", 1,
+                      moved.refCount());
+  }
+
+  void test_Move_Assignment_Keeps_Ref_Count_The_Same_On_Moved_To_Object() {
+    // Use something with heap allocation so we know it's a new object
+    Python::PythonObject original(Python::NewRef(PyList_New(1)));
+    Python::PythonObject moved;
+    moved = std::move(original);
+    TSM_ASSERT_EQUALS("New object should have same reference count", 1,
+                      moved.refCount());
+  }
+
+
   void test_Equality_Operator() {
     Python::PythonObject original(Python::NewRef(PyList_New(1)));
     TSM_ASSERT_EQUALS("Objects should equal each other", original, original);
