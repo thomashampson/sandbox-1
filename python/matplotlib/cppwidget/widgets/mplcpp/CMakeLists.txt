@@ -1,7 +1,7 @@
 # Rules for matplotlib cpp library
 set (LIB_SRCS
-  src/MplAxes.cpp
   src/MplFigureCanvas.cpp
+  src/MplPlotWidget.cpp
   src/NDArray1D.cpp
   src/Numpy.cpp
   src/PythonErrors.cpp
@@ -11,10 +11,10 @@ set (LIB_SRCS
 
 set (MOC_HEADERS
   include/MplFigureCanvas.h
+  include/MplPlotWidget.h
 )
 
 set (NOMOC_HEADERS
-  include/MplAxes.h
   include/NDArray1D.h
   include/Numpy.h
   include/PythonErrors.h

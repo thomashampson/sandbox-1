@@ -2,7 +2,6 @@
 #define NDARRAY1DTEST_H
 
 #include "cxxtest/TestSuite.h"
-#include "cxxtest/GlobalFixture.h"
 
 #include "NDArray1D.h"
 

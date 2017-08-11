@@ -1,23 +1,27 @@
 #include "MainWindow.h"
 #include "ui_mainwindow.h"
 
-#include "MplFigureCanvas.h"
+#include "MplPlotWidget.h"
 
 // -----------------------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
     : QMainWindow(parent, flags), m_ui(new Ui_MainWindow),
-      m_plotCanvas(new Python::MplFigureCanvas(111, this)) {
-  setCentralWidget(m_plotCanvas);
+      m_mplPlot(new Python::MplPlotWidget(211, this)) {
+  setCentralWidget(m_mplPlot);
 
   std::vector<double> x(10);
   double value(0.0);
+
   std::generate_n(std::begin(x), 10, [&value]() { return value++; });
-  auto axes = m_plotCanvas->axes();
-  axes.plot(x, x, "r-");
+  m_mplPlot->plot(x, x, "r-");
   value = 0.0;
+
+
+  m_mplPlot->addSubPlot(212);
   std::generate_n(std::begin(x), 10, [&value]() { return 2 + value++; });
-  axes.plot(x, x, "bo");
-  m_plotCanvas->draw();
+  m_mplPlot->plot(x, x, "bo");
+
+//  m_mplPlot->draw();
 }
 
 // -----------------------------------------------------------------------------

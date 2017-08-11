@@ -106,6 +106,11 @@ private:
 //-----------------------------------------------------------------------------
 // Utilities
 //----------------------------------------------------------------------------
+
+// Avoids a compiler warning about implicit 'const char *'->'char*' conversion
+// in most of Python API under gcc/clang
+#define PYSTR_LITERAL(str) const_cast<char *>(str)
+
 /// Import a module and return a new reference
 PythonObject importModule(const char *name);
 /// Import and return the named object from the given module

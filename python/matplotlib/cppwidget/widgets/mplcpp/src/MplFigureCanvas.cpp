@@ -1,9 +1,11 @@
 #include "MplFigureCanvas.h"
-#include "MplAxes.h"
+#include "NDArray1D.h"
 #include "PythonErrors.h"
 #include "SipUtils.h"
 
 #include <QVBoxLayout>
+
+#include <iostream>
 
 namespace {
 //------------------------------------------------------------------------------
@@ -49,44 +51,55 @@ const Python::PythonObject &mplFigureCanvasType() {
 
 namespace Python {
 //------------------------------------------------------------------------------
-// MplFigureCanvas::Impl - Private implementation
+// MplFigureCanvas::PyObjectHolder - Private implementation
 //------------------------------------------------------------------------------
-class MplFigureCanvas::Impl {
-  friend class MplFigureCanvas;
-  Impl(int subplotLayout) {
+struct MplFigureCanvas::PyObjectHolder {
+  PyObjectHolder(int subplotLayout) {
     // Create a figure and attach it to a canvas object. This creates a
     // blank widget
     PythonObject figure(
         NewRef(PyObject_CallObject(mplFigureType().get(), NULL)));
-    m_axes = MplAxes(NewRef(
-        PyObject_CallMethod(figure.get(), "add_subplot", "i", subplotLayout)));
-    auto instance =
-        PyObject_CallFunction(mplFigureCanvasType().get(), "(O)", figure.get());
+    PythonObject(
+        NewRef(PyObject_CallMethod(figure.get(), PYSTR_LITERAL("add_subplot"),
+                                   PYSTR_LITERAL("i"), subplotLayout)));
+    auto instance = PyObject_CallFunction(mplFigureCanvasType().get(),
+                                          PYSTR_LITERAL("(O)"), figure.get());
     if (!instance) {
       throw PythonError(errorToString());
     }
-    m_canvas = PythonObject(NewRef(instance));
+    canvas = PythonObject(NewRef(instance));
   }
 
-private:
-  PythonObject m_canvas;
-  MplAxes m_axes;
+  /**
+   * Return the Axes object that is currently active. Analogous to figure.gca()
+   * @return matplotlib.axes.Axes object
+   */
+  PythonObject gca() {
+    auto figure = PythonObject(
+        NewRef(PyObject_GetAttrString(canvas.get(), PYSTR_LITERAL("figure"))));
+    return PythonObject(NewRef(PyObject_CallMethod(
+        figure.get(), PYSTR_LITERAL("gca"), PYSTR_LITERAL(""), nullptr)));
+  }
+
+  PythonObject canvas;
 };
 
 //------------------------------------------------------------------------------
 // MplFigureCanvas
 //------------------------------------------------------------------------------
 /**
- * @brief Constructs a matplotlib Qt canvas containing a single subplot
- * @param subplotLayout The subplot layout defined in matplotlib's convenience
- * format. See
+ * @brief Constructs an empty plot widget with the given subplot layout.
+ *
+ * @param subplotLayout The sublayout geometry defined in matplotlib's
+ * convenience format: [Default=111]. See
  * https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.subplot
+ *
  * @param parent A pointer to the parent widget, can be nullptr
  */
 MplFigureCanvas::MplFigureCanvas(int subplotLayout, QWidget *parent)
-    : QWidget(parent), m_impl(new Impl(subplotLayout)) {
+    : QWidget(parent), m_pydata(new PyObjectHolder(subplotLayout)) {
   setLayout(new QVBoxLayout);
-  auto cpp = static_cast<QWidget *>(sipUnwrap(m_impl->m_canvas.get()));
+  auto cpp = static_cast<QWidget *>(sipUnwrap(m_pydata->canvas.get()));
   assert(cpp);
   layout()->addWidget(cpp);
 }
@@ -94,22 +107,65 @@ MplFigureCanvas::MplFigureCanvas(int subplotLayout, QWidget *parent)
 /**
  * @brief Destroys the object
  */
-MplFigureCanvas::~MplFigureCanvas() { delete m_impl; }
+MplFigureCanvas::~MplFigureCanvas() { delete m_pydata; }
 
 /**
- *
- * @return A reference to the Axes object
+ * Retrieve information about the subplot geometry
+ * @return
  */
-MplAxes MplFigureCanvas::axes() const
-{
-  return m_impl->m_axes;
+SubPlotSpec MplFigureCanvas::subplotSpec() const {
+  auto axes = m_pydata->gca();
+  auto geometry = PythonObject(NewRef(PyObject_CallMethod(
+      axes.get(), PYSTR_LITERAL("get_geometry"), PYSTR_LITERAL(""), nullptr)));
+
+  return SubPlotSpec(PyInt_AS_LONG(PyTuple_GET_ITEM(geometry.get(), 0)),
+                     PyInt_AS_LONG(PyTuple_GET_ITEM(geometry.get(), 1)));
 }
 
 /**
  * Call FigureCanvas.draw method on base class
  */
-void MplFigureCanvas::draw()
-{
-  PyObject_CallMethod(m_impl->m_canvas.get(), "draw", "", nullptr);
+void MplFigureCanvas::draw() {
+  PythonObject(
+      NewRef(PyObject_CallMethod(m_pydata->canvas.get(), PYSTR_LITERAL("draw"),
+                                 PYSTR_LITERAL(""), nullptr)));
 }
+
+/**
+ * Equivalent of Figure.add_subplot. If the subplot already exists then
+ * it simply sets that plot number to be active
+ * @param subplotLayout Subplot geometry in matplotlib convenience format,
+ * e.g 2,1,2 would stack 2 plots on top of each other and set the second
+ * to active
+ */
+void MplFigureCanvas::addSubPlot(int subplotLayout) {
+  auto figure = PythonObject(NewRef(
+      PyObject_GetAttrString(m_pydata->canvas.get(), PYSTR_LITERAL("figure"))));
+  PythonObject(
+      NewRef(PyObject_CallMethod(figure.get(), PYSTR_LITERAL("add_subplot"),
+                                 PYSTR_LITERAL("(i)"), subplotLayout)));
+}
+
+/**
+ * Plot lines or markers to the axes
+ * @param x A container of X points. Requires support for forward iteration.
+ * @param y A container of Y points. Requires support for forward iteration.
+ * @param format A format string for the line/markers
+ */
+template <typename XArrayType, typename YArrayType>
+void MplFigureCanvas::plot(const XArrayType &x, const YArrayType &y,
+                           const char *format) {
+  NDArray1D xnp(x), ynp(y);
+  auto axes = m_pydata->gca();
+  PythonObject(NewRef(PyObject_CallMethod(axes.get(), PYSTR_LITERAL("plot"),
+                                          PYSTR_LITERAL("(OOs)"), xnp.get(),
+                                          ynp.get(), format)));
+}
+
+//------------------------------------------------------------------------------
+// Explicit template instantations
+//------------------------------------------------------------------------------
+using VectorDouble = std::vector<double>;
+template void MplFigureCanvas::plot<VectorDouble, VectorDouble>(
+    const VectorDouble &, const VectorDouble &, const char *);
 }

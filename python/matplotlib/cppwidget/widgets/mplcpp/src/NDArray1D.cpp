@@ -12,5 +12,5 @@
  */
 std::array<size_t, 1> Python::NDArray1D::shape() const {
   auto npShape = PyArray_SHAPE((PyArrayObject *)this->get());
-  return {npShape[0]};
+  return {static_cast<size_t>(npShape[0])};
 }

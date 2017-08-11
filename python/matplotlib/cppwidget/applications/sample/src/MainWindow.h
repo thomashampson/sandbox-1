@@ -8,7 +8,7 @@
 class Ui_MainWindow;
 
 namespace Python {
-class MplFigureCanvas;
+class MplPlotWidget;
 }
 
 // ------------------------------------------------------------------------------
@@ -22,7 +22,7 @@ public:
 
 private:
   std::unique_ptr<Ui_MainWindow> m_ui;
-  Python::MplFigureCanvas *m_plotCanvas;
+  Python::MplPlotWidget *m_mplPlot;
 };
 
 #endif // MAINWINDOW_H_

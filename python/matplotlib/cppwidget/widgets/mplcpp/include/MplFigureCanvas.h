@@ -3,12 +3,27 @@
 
 #include <QWidget>
 
-#include "MplAxes.h"
-
 namespace Python {
 
+struct SubPlotSpec {
+  SubPlotSpec(long rows, long cols) : nrows(rows), ncols(cols) {}
+  // These are long to match Python ints so we can avoid some casts
+  long nrows;
+  long ncols;
+};
+
 /**
- * @brief C++ wrapper around a matplotlib Qt canvas.
+ * @brief Non-member equality operator
+ * @param lhs Left-hand side object
+ * @param rhs Right-hand side object
+ * @return True if the number of rows/cols match
+ */
+inline bool operator==(const SubPlotSpec &lhs, const SubPlotSpec &rhs) {
+  return lhs.nrows == rhs.nrows && lhs.ncols == rhs.ncols;
+}
+
+/**
+ * C++ wrapper of a matplotlib backend FigureCanvas
  *
  * It uses the Agg version of the Qt matplotlib backend that matches the
  * Qt version that the library is compiled against.
@@ -19,16 +34,24 @@ namespace Python {
 class MplFigureCanvas : public QWidget {
   Q_OBJECT
 public:
-  explicit MplFigureCanvas(int subplotLayout = 111, QWidget *parent = 0);
+  MplFigureCanvas(int subplotLayout = 111, QWidget *parent = 0);
   ~MplFigureCanvas();
 
-  MplAxes axes() const;
+  // Query
+  SubPlotSpec subplotSpec() const;
+
+
   void draw();
+  void addSubPlot(int subplotLayout);
+
+  template <typename XArrayType, typename YArrayType>
+  void plot(const XArrayType &x, const YArrayType &y, const char *format);
 
 private:
-  // Private implementation to keep Python out of headers
-  class Impl;
-  Impl *m_impl;
+  // Python objects are held in an hidden type to avoid Python
+  // polluting the header
+  struct PyObjectHolder;
+  PyObjectHolder *m_pydata;
 };
 }
 #endif // MPLFIGURECANVAS_H
