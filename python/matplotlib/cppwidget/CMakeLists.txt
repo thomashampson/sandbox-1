@@ -35,15 +35,9 @@ set (CMAKE_CXX_FLAGS "$${CMAKE_CXX_FLAGS} -Wall -Wextra")
 set (BUILD_SHARED_LIBS ON)
 
 # External dependencies
-# Download and unpack cxxtest at configure time
-configure_file(cmake/CMakeLists.txt.cxxtest.in
-    cxxtest-download/CMakeLists.txt)
-execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest-download )
-execute_process(COMMAND ${CMAKE_COMMAND} --build .
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/cxxtest-download )
-set (CXXTEST_INCLUDE_DIR ${CMAKE_BINARY_DIR}/cxxtest-src)
-set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE ${CMAKE_BINARY_DIR}/cxxtest-src/python/scripts/cxxtestgen)
+set (_thirdparty_dir ${mplcpp_SOURCE_DIR}/3rdparty)
+set (CXXTEST_INCLUDE_DIR ${_thirdparty_dir}/cxxtest)
+set (CXXTEST_PYTHON_TESTGEN_EXECUTABLE ${_thirdparty_dir}/cxxtest/python/scripts/cxxtestgen)
 find_package (CxxTest)
 enable_testing()
 
