@@ -42,8 +42,19 @@ const Python::PythonObject &mplFigureCanvasType() {
     // Importing PyQt version first helps matplotlib select the correct backend.
     // We should do this in some kind of initialisation routine
     Python::importModule(PYQT_MODULE);
-    figureCanvasType =
+    auto figureCanvasBaseType =
         Python::getAttrOnModule(MPL_QT_BACKEND, "FigureCanvasQTAgg");
+    PyObject *pClassName = PyBytes_FromString("MyMplCanvas");
+    PyObject *pClassBases = PyTuple_New(1); // An empty tuple for bases is equivalent to `(object,)`
+    PyTuple_SetItem(pClassBases, 0, figureCanvasBaseType.get());
+    PyObject *pClassDic = PyDict_New();
+
+    // pClass = type(pClassName, pClassBases, pClassDic)
+    figureCanvasType = Python::PythonObject(Python::NewRef(PyObject_CallFunctionObjArgs((PyObject*)&PyType_Type, pClassName, pClassBases, pClassDic, NULL)));
+
+    Py_CLEAR(pClassName);
+    Py_CLEAR(pClassBases);
+    Py_CLEAR(pClassDic);
   }
   return figureCanvasType;
 }
