@@ -49,12 +49,14 @@ find_package (SIP REQUIRED)
 # Qt
 # Automoc & Autouic won't work while we are building against Qt4 & Qt5
 
+set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsuggest-override" )
+
 # Qt 4
-find_package (Qt4 REQUIRED QtCore QtGui)
+find_package (Qt4 COMPONENTS QtCore QtGui REQUIRED)
 find_package (PyQt4 REQUIRED)
 
 # Qt 5
-find_package (Qt5Widgets REQUIRED)
+find_package (Qt5 COMPONENTS Widgets REQUIRED)
 find_package (PyQt5 REQUIRED)
 
 include_directories ( SYSTEM ${SIP_INCLUDE_DIR} )

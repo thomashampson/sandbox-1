@@ -3,14 +3,14 @@
 """
 from __future__ import print_function
 
-import sip
-sip.setapi('QString', 2)
 
-from PyQt4.QtCore import QObject, pyqtSignal
-from PyQt4.QtGui import QApplication, QTableWidgetItem
-from PyQt4.uic import loadUiType
+from PyQt5.QtCore import QEvent, QObject, Qt, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QLineEdit, QTableWidgetItem
+from PyQt5.uic import loadUiType
 
-from matplotlib.backends.backend_qt4agg import (
+from matplotlib.backend_bases import (MouseEvent)
+
+from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas,
     NavigationToolbar2QT as NavigationToolbar)
 from matplotlib.figure import Figure
@@ -20,6 +20,28 @@ import numpy as np
 
 # Process .ui file
 Ui_MainWindow, QMainWindow = loadUiType('mainwindow.ui')
+
+class MouseClickMonitor(QObject):
+
+    def __init__(self, canvas):
+        super(MouseClickMonitor, self).__init__()
+        self.canvas = canvas
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseButtonDblClick:
+            x, y = self.canvas.mouseEventCoords(event.pos())
+            print(self.canvas.figure.axes[0].title.contains(MouseEvent('foo', x, y, dblclick=True)))
+            return True
+        else:
+            return super(MouseClickMonitor, self).eventFilter(obj, event)
+
+
+#class InlineLabelEditor(QLineEdit):
+
+#    def __init__(self, canvas, artist):
+
+
+
 
 # ------------------------------------------------------------------------------
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -32,6 +54,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self._create_mplplot()
         self._peak_picker = self._create_peak_picker(self._canvas)
 
+        self._onpick = self._canvas.mpl_connect('pick_event',
+                                                self._on_pick)
+
+
     def _create_mplplot(self):
         x = np.arange(1,101, 0.01)
         mu, sigma = 50, 5
@@ -39,7 +65,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         fig = Figure()
         axes = fig.add_subplot(111)
         axes.plot(x, y, color='black')
+        axes.set_title('Text', y=1.02)
+
         self._canvas = FigureCanvas(fig)
+        print(dir(FigureCanvas))
+        self._filter = MouseClickMonitor(self._canvas)
+        self._canvas.installEventFilter(self._filter)
         self.mpllayout.addWidget(self._canvas)
         self._canvas.draw()
         return fig
@@ -50,6 +81,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                               picker.lines[1].get_xdata()[0])
         picker.region_updated.connect(self.on_region_update)
         return picker
+
+    def _on_pick(self, evt):
+        if not evt.mouseevent.dblclick:
+            return
+        print(dir(evt.artist.get_text()))
+        # print("Title double clicked at matplotlib coords",evt.mouseevent.x, evt.mouseevent.y)
+        # print("Canvas width=",self._canvas.width(), "height=", self._canvas.height())
+        # editor = QLineEdit(self._canvas)
+        # editor.setAttribute(Qt.WA_DeleteOnClose)
+        # editor.setText(self._canvas.figure.get_axes()[0].get_title())
+        # self._canvas.figure.get_axes()[0].set_title('')
+        # self._canvas.draw()
+        # editor.move(evt.mouseevent.x - (0.5*editor.width()), self._canvas.height() - evt.mouseevent.y - 0.5*editor.height())
+        # editor.show()
+        # self._editor = editor
+
 
     def on_region_update(self, leftx, rightx):
         self.table_widget.setItem(0, 1, QTableWidgetItem(str(leftx)))

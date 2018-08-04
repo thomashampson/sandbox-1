@@ -40,9 +40,9 @@ public:
   // Query
   SubPlotSpec subplotSpec() const;
 
-
   void draw();
   void addSubPlot(int subplotLayout);
+
 
   template <typename XArrayType, typename YArrayType>
   void plot(const XArrayType &x, const YArrayType &y, const char *format);
