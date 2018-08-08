@@ -17,4 +17,4 @@ private:
   std::vector<double> m_data;
 };
 
-#endif //CONTAINER_H_
+#endif // CONTAINER_H_
