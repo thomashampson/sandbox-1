@@ -14,19 +14,24 @@ using namespace boost::python;
 class ContainerPythonIterator {
 public:
   explicit ContainerPythonIterator(const Container &source)
-      : m_begin(source.begin()), m_end(source.end()), m_current(*m_begin) {}
+      : m_begin(source.begin()), m_end(source.end()), first_or_done(true) {}
 
   const ContainerItem &next() {
-    if (m_begin == m_end)
+    if(!first_or_done)
+      ++m_begin;
+    else
+      first_or_done = false;
+    if (m_begin == m_end) {
+      first_or_done = false;
       objects::stop_iteration_error();
-    m_current = *m_begin++;
-    return m_current;
+    }
+    return *m_begin;
   }
 
 private:
   ContainerIterator m_begin;
   ContainerIterator m_end;
-  ContainerItem m_current;
+  bool first_or_done;
 };
 
 ContainerPythonIterator make_pyiterator(const Container &source) {
@@ -53,9 +58,9 @@ BOOST_PYTHON_MODULE(core) {
 #endif
           ,
           &ContainerPythonIterator::next,
-          return_value_policy<copy_const_reference>());
+          return_value_policy<reference_existing_object>());
 
-  class_<ContainerItem>("ContainerItem", no_init)
+  class_<ContainerItem, boost::noncopyable>("ContainerItem", no_init)
       .add_property("index", &ContainerItem::index, "Return the index");
 
   def("container", container, return_value_policy<reference_existing_object>());
