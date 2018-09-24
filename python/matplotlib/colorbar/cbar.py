@@ -31,7 +31,9 @@ class MainWindow(QMainWindow):
     def _create_colorbar(self):
         self.mappable = ScalarMappable(norm=Normalize(vmin=-1., vmax=1.),
                                        cmap=DEFAULT_CMAP)
-        self.mappable.set_array(np.linspace(-1., 1., 100))
+        # The array is required but does not affect the output:
+        # https://stackoverflow.com/questions/28801803/matplotlib-scalarmappable-why-need-to-set-array-if-norm-set
+        self.mappable.set_array([])
         self.colobar = Colorbar(ax=self.cb_axes,
                                 mappable=self.mappable)
 
