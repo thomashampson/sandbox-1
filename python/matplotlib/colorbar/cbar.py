@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout,
 from matplotlib.backends.backend_qt5agg import (
     FigureCanvasQTAgg as FigureCanvas)
 from matplotlib.cm import ScalarMappable, get_cmap
-from matplotlib.colors import Normalize
+from matplotlib.colors import Normalize, SymLogNorm
 from matplotlib.figure import Figure
 
 import numpy as np
@@ -40,16 +40,20 @@ class ColorbarWidget(QWidget):
         self._create_colorbar(fig)
 
     def _create_colorbar(self, fig):
-        self.mappable = ScalarMappable(norm=Normalize(vmin=-1., vmax=1.),
+        self.mappable = ScalarMappable(norm=SymLogNorm(0.0001, 1,vmin=-10., vmax=10000.),
                                   cmap=DEFAULT_CMAP)
         self.mappable.set_array([])
-        self.cb = fig.colorbar(self.mappable, ax=self.cb_axes, cax=self.cb_axes)
+        fig.colorbar(self.mappable, ax=self.cb_axes, cax=self.cb_axes)
 
     def _update_cb_scale(self):
-        self.mappable.set_clim(30, 4300)
+        self.mappable.colorbar.remove()
+        rect = 0.25, 0.05, 0.1, 0.90
+        self.cb_axes = self.canvas.figure.add_axes(rect)
+        self.mappable = ScalarMappable(Normalize(30, 4300),
+                                   cmap=DEFAULT_CMAP)
+        self.mappable.set_array([])
+        self.canvas.figure.colorbar(self.mappable, ax=self.cb_axes, cax=self.cb_axes)
         self.canvas.draw()
-
-
 
 
 if __name__ == '__main__':
