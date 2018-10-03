@@ -22,7 +22,7 @@ public:
     else
       first_or_done = false;
     if (m_begin == m_end) {
-      first_or_done = false;
+      first_or_done = true;
       objects::stop_iteration_error();
     }
     return *m_begin;
