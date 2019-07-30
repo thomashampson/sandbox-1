@@ -52,7 +52,7 @@ find_package (fmt REQUIRED)
 # Targets
 ######################################
 add_executable (main main.cpp)
-target_link_libraries (main PRIVATE tcmalloc_minimal)
+#target_link_libraries (main PRIVATE tcmalloc_minimal)
 target_link_libraries (main PRIVATE spdlog::spdlog fmt::fmt)
 enable_cxx14 (main)
 set_standard_warnings (main)

@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <gperftools/malloc_extension.h>
+//#include <gperftools/malloc_extension.h>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -10,8 +10,6 @@
 #include <thread>
 #include <unistd.h>
 #include <vector>
-
-#include <boost/pool/pool_alloc.hpp>
 
 #define SPDLOG_NO_DATETIME
 #define SPDLOG_EOL ""
@@ -25,20 +23,28 @@ using std::stoi;
 using std::string;
 using std::vector;
 
-class Workspace {
+class Spectrum {
 public:
-  using Spectrum = vector<double>;
-  using VectorSpectra = vector<Spectrum>;
-
-  Workspace(size_t nspectra, size_t nbins) {
-    m_x.resize(nspectra);
-    for (auto &spectrum : m_x) {
-      spectrum.resize(nbins, 1.0);
-    }
+  Spectrum(size_t nbins) {
+    m_x.resize(nbins, 1.0);
+    m_y.resize(nbins, 1.0);
+    m_e.resize(nbins, 1.0);
   }
 
 private:
-  VectorSpectra m_x;
+  std::vector<double> m_x, m_y, m_e;
+};
+
+class Workspace {
+public:
+  using VectorSpectra = vector<Spectrum>;
+
+  Workspace(size_t nspectra, size_t nbins) {
+    m_spectra.resize(nspectra, Spectrum(nbins));
+  }
+
+private:
+  VectorSpectra m_spectra;
 };
 
 using WorkspaceSptr = std::shared_ptr<Workspace>;
@@ -47,8 +53,6 @@ template <typename DataType> class DataService {
 public:
   using Key = string;
   using Value = DataType;
-  using Comp = std::less<Key>;
-  using Alloc = boost::pool_allocator<std::pair<const Key, Value>>;
 
 public:
   inline size_t size() const { return m_index.size(); }
@@ -59,7 +63,7 @@ public:
   void clear() { m_index.clear(); }
 
 private:
-  map<Key, Value> m_index;
+  unorderremap<Key, Value> m_index;
 };
 using BasicADS = DataService<WorkspaceSptr>;
 
@@ -123,14 +127,13 @@ int main(int argc, char *argv[]) {
   display_memory_usage();
   CONSOLE_LOGGER->info("Clearing ADS and waiting 5s\n");
   ads.clear();
-  CONSOLE_LOGGER->info("ADS size: {}\n", ads.size());
-  MallocExtension::instance()->ReleaseFreeMemory();
+  // MallocExtension::instance()->ReleaseFreeMemory();
 
   using namespace std::chrono_literals;
   std::this_thread::sleep_for(5s);
   auto mem_end = display_memory_usage();
 
   CONSOLE_LOGGER->info("Memory diff: {} MiB\n", mem_end-mem_start);
-  
+
   return 0;
 }
