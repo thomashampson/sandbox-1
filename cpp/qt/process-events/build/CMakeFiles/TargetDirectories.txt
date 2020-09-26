@@ -1,0 +1,6 @@
+/home/mgigg/Code/martyngigg/sandbox/cpp/qt/process-events/build/CMakeFiles/edit_cache.dir
+/home/mgigg/Code/martyngigg/sandbox/cpp/qt/process-events/build/CMakeFiles/rebuild_cache.dir
+/home/mgigg/Code/martyngigg/sandbox/cpp/qt/process-events/build/CMakeFiles/processEventsTest.dir
+/home/mgigg/Code/martyngigg/sandbox/cpp/qt/process-events/build/CMakeFiles/processEvents.dir
+/home/mgigg/Code/martyngigg/sandbox/cpp/qt/process-events/build/CMakeFiles/processEventsTest_autogen.dir
+/home/mgigg/Code/martyngigg/sandbox/cpp/qt/process-events/build/CMakeFiles/processEvents_autogen.dir
