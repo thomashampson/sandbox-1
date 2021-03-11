@@ -1,0 +1,12 @@
+{
+	"@metadata": {
+		"authors": [
+			"Kumkumuk",
+			"Thibaut120094",
+			"Verdy p",
+			"Wladek92"
+		]
+	},
+	"skinname-strapping": "Cerclage",
+	"strapping-desc": "L’habillage Cerclage est construit sur un thème Vector modifié de MediaWiki et utilise Bootstrap de Twitter pour la mise en page de base, la typographie et d’autres widgets."
+}
