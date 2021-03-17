@@ -1,0 +1,6 @@
+all:
+  children:
+    webservers:
+      hosts:
+        localhost:2022:
+          ansible_user: osboxes
