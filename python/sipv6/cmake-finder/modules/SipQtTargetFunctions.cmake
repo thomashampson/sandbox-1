@@ -80,40 +80,19 @@ function(mtd_add_sip_module)
   configure_file(${_sipmodule_template_path} ${_module_spec})
 
   if(PARSED_PYQT_VERSION EQUAL 5)
-    set(_sip_include_dir ${SIP_INCLUDE_DIR})
-    set(_sip_executable ${SIP_EXECUTABLE})
+    if(SIP_BUILD_EXECUTABLE)
+      message(FATAL_ERROR "sip-build system is not yet supported")
+    else()
+      _add_sip_library_v4(
+        ${PARSED_TARGET_NAME} ${PARSED_MODULE_NAME} ${_module_spec}
+        _sip_include_deps
+      )
+    endif()
   elseif(PARSED_PYQT_VERSION EQUAL 6)
     message(FATAL_ERROR "PyQt6 is not yet supported")
   else()
     message(FATAL_ERROR "Unknown PYQT_VERSION: ${PARSED_PYQT_VERSION}")
   endif()
-  set(_pyqt_sip_dir ${PYQT${PARSED_PYQT_VERSION}_SIP_DIR})
-  if(NOT _pyqt_sip_dir)
-    message(
-      FATAL_ERROR
-        "find_package(PyQt) must have been called with the correct PyQt version"
-    )
-  endif()
-  # Use wrapper so we can compile in C++17 mode
-  set(_sip_wrapper ${CMAKE_SOURCE_DIR}/tools/sip/sipwrapper.py)
-  list(APPEND _sip_include_flags "-I${_pyqt_sip_dir}")
-  set(_pyqt_sip_flags "${PYQT${PARSED_PYQT_VERSION}_SIP_FLAGS}")
-  set(_sip_generated_cpp
-      ${CMAKE_CURRENT_BINARY_DIR}/sip${PARSED_MODULE_NAME}part0.cpp
-  )
-  add_custom_command(
-    OUTPUT ${_sip_generated_cpp}
-    COMMAND
-      ${Python_EXECUTABLE} ARGS ${_sip_wrapper} ${_sip_executable}
-      ${_sip_include_flags} ${_pyqt_sip_flags} -c ${CMAKE_CURRENT_BINARY_DIR}
-      -j1 -w -e ${_module_spec}
-    DEPENDS ${_module_spec} ${_sip_include_deps}
-    COMMENT "Generating ${PARSED_MODULE_NAME} python bindings with sip"
-  )
-
-  add_library(
-    ${PARSED_TARGET_NAME} MODULE ${_sip_generated_cpp} ${_sip_include_deps}
-  )
   # Suppress Warnings about sip bindings have PyObject -> PyFunc casts which is
   # a valid pattern GCC8 onwards detects GCC 8 onwards needs to disable
   # functional casting at the Python interface
@@ -123,7 +102,7 @@ function(mtd_add_sip_module)
       $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,8.0>>:-Wno-cast-function-type>
   )
   target_include_directories(
-    ${PARSED_TARGET_NAME} SYSTEM PRIVATE ${_sip_include_dir} Python::Python
+    ${PARSED_TARGET_NAME} SYSTEM PRIVATE Python::Python
   )
   target_include_directories(
     ${PARSED_TARGET_NAME} PRIVATE ${PARSED_INCLUDE_DIRS}
@@ -190,4 +169,50 @@ function(mtd_add_sip_module)
   else()
     set_target_properties(${PARSED_TARGET_NAME} PROPERTIES PREFIX "")
   endif()
+endfunction()
+
+# Private API
+# ~~~
+# Add a library target based on the given sip module file. The library target
+# will first generate the bindings and then compile to code.
+# Note that this is for sip <= v4 build system and hardcode to PyQt5
+# Args:
+#   - PARSED_TARGET_NAME: The name of the library target
+#   - PARSED_MODULE_NAME: The name of the sip module as seen by Python
+#   - _module_spec: The full path to the sip module file
+#   - _sip_include_deps_var: A variable containing a list of files to add as dependencies to the target
+# ~~~
+function(_add_sip_library_v4 PARSED_TARGET_NAME PARSED_MODULE_NAME _module_spec
+         _sip_include_deps_var
+)
+  if(NOT PYQT5_SIP_DIR)
+    message(
+      FATAL_ERROR
+        "find_package(PyQt) must have been called with the correct PyQt version"
+    )
+  endif()
+  # Use wrapper so we can compile in C++17 mode
+  set(_sip_wrapper ${CMAKE_SOURCE_DIR}/tools/sip/sipwrapper.py)
+  list(APPEND _sip_include_flags "-I${PYQT5_SIP_DIR}")
+  set(_pyqt_sip_flags "${PYQT5_SIP_FLAGS}")
+  set(_sip_generated_cpp
+      ${CMAKE_CURRENT_BINARY_DIR}/sip${PARSED_MODULE_NAME}part0.cpp
+  )
+  add_custom_command(
+    OUTPUT ${_sip_generated_cpp}
+    COMMAND
+      ${Python_EXECUTABLE} ARGS ${_sip_wrapper} ${SIP_EXECUTABLE}
+      ${_sip_include_flags} ${_pyqt_sip_flags} -c ${CMAKE_CURRENT_BINARY_DIR}
+      -j1 -w -e ${_module_spec}
+    DEPENDS ${_module_spec} ${_sip_include_deps}
+    COMMENT "Generating ${PARSED_MODULE_NAME} python bindings with sip"
+  )
+
+  add_library(
+    ${PARSED_TARGET_NAME} MODULE ${_sip_generated_cpp}
+                                 ${${_sip_include_deps_var}}
+  )
+  target_include_directories(
+    ${PARSED_TARGET_NAME} SYSTEM PRIVATE ${SIP_INCLUDE_DIR}
+  )
 endfunction()
