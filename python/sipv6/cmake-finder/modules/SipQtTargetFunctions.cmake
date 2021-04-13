@@ -8,7 +8,7 @@ include(QtTargetFunctions)
 # .sip module is generated in the CMAKE_CURRENT_BINARY_DIR
 # keyword: MODULE_NAME The name of the final python module (without extension)
 # keyword: MODULE_OUTPUT_DIR The final destination of the built module optional
-# keyword: SIP_SRCS A list of input .sip file paths
+# keyword: SIP_SRC The input .sip file path
 # keyword: HEADER_DEPS A list of header files that are included in the .sip files. These are set as dependencies on
 # the target.
 # keyword: INCLUDE_DIRS A list of additional target_include_directories
@@ -20,22 +20,11 @@ include(QtTargetFunctions)
 # keyword: LINUX_INSTALL_RPATH Install path for CMAKE_SYSTEM_NAME == Linux
 # ~~~
 function(mtd_add_sip_module)
-  find_file(_sipmodule_template_path NAME sipqtmodule_template.sip.in
-            PATHS ${CMAKE_MODULE_PATH}
-  )
-  if(NOT _sipmodule_template_path)
-    message(
-      FATAL
-      "Unable to find sipqtmodule_template.sip.in in cmake module path. Cannot continue."
-    )
-  endif()
-
   set(options)
-  set(oneValueArgs MODULE_NAME TARGET_NAME MODULE_OUTPUT_DIR PYQT_VERSION
-                   FOLDER
+  set(oneValueArgs MODULE_NAME TARGET_NAME SIP_SRC MODULE_OUTPUT_DIR
+                   PYQT_VERSION FOLDER
   )
   set(multiValueArgs
-      SIP_SRCS
       HEADER_DEPS
       SYSTEM_INCLUDE_DIRS
       INCLUDE_DIRS
@@ -51,20 +40,15 @@ function(mtd_add_sip_module)
   # Create the module spec file from the list of .sip files The template file
   # expects the variables to have certain names
   set(MODULE_NAME ${PARSED_MODULE_NAME})
-  set(SIP_INCLUDES)
-  # Sip cannot %Include absolute paths so make them relative and add -I flag
-  foreach(_sip_file ${PARSED_SIP_SRCS})
-    get_filename_component(_filename ${_sip_file} NAME)
-    get_filename_component(_directory ${_sip_file} DIRECTORY)
-    set(SIP_INCLUDES "${SIP_INCLUDES}%Include ${_filename}\n")
-    if(NOT _directory)
-      set(_directory ${CMAKE_CURRENT_LIST_DIR})
-    elseif(NOT IS_ABSOLUTE _directory)
-      set(_directory ${CMAKE_CURRENT_LIST_DIR}/${_directory})
-    endif()
-    list(APPEND _sip_include_flags "-I${_directory}")
-    list(APPEND _sip_include_deps "${_sip_file}")
-  endforeach()
+  # set(SIP_INCLUDES) # Sip cannot %Include absolute paths so make them relative
+  # and add -I flag foreach(_sip_file ${PARSED_SIP_SRCS})
+  # get_filename_component(_filename ${_sip_file} NAME)
+  # get_filename_component(_directory ${_sip_file} DIRECTORY) set(SIP_INCLUDES
+  # "${SIP_INCLUDES}%Include ${_filename}\n") if(NOT _directory) set(_directory
+  # ${CMAKE_CURRENT_LIST_DIR}) elseif(NOT IS_ABSOLUTE _directory) set(_directory
+  # ${CMAKE_CURRENT_LIST_DIR}/${_directory}) endif() list(APPEND
+  # _sip_include_flags "-I${_directory}") list(APPEND _sip_include_deps
+  # "${_sip_file}") endforeach()
 
   # Add absolute paths for header dependencies
   foreach(_header ${PARSED_HEADER_DEPS})
@@ -75,13 +59,16 @@ function(mtd_add_sip_module)
     endif()
   endforeach()
 
-  # Run sip code generator
-  set(_module_spec ${CMAKE_CURRENT_BINARY_DIR}/${PARSED_MODULE_NAME}.sip)
-  configure_file(${_sipmodule_template_path} ${_module_spec})
-
+  # Configure final module set(_module_spec
+  # ${CMAKE_CURRENT_BINARY_DIR}/${PARSED_MODULE_NAME}.sip)
+  # configure_file(${SIP_MODULE_TEMPLATE} ${_module_spec})
+  set(_module_spec ${CMAKE_CURRENT_LIST_DIR}/${PARSED_SIP_SRC})
   if(PARSED_PYQT_VERSION EQUAL 5)
     if(SIP_BUILD_EXECUTABLE)
-      message(FATAL_ERROR "sip-build system is not yet supported")
+      _add_sip_library(
+        ${PARSED_TARGET_NAME} ${PARSED_MODULE_NAME} ${_module_spec}
+        ${PARSED_PYQT_VERSION} _sip_include_deps
+      )
     else()
       _add_sip_library_v4(
         ${PARSED_TARGET_NAME} ${PARSED_MODULE_NAME} ${_module_spec}
@@ -93,6 +80,7 @@ function(mtd_add_sip_module)
   else()
     message(FATAL_ERROR "Unknown PYQT_VERSION: ${PARSED_PYQT_VERSION}")
   endif()
+
   # Suppress Warnings about sip bindings have PyObject -> PyFunc casts which is
   # a valid pattern GCC8 onwards detects GCC 8 onwards needs to disable
   # functional casting at the Python interface
@@ -102,15 +90,14 @@ function(mtd_add_sip_module)
       $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,8.0>>:-Wno-cast-function-type>
   )
   target_include_directories(
-    ${PARSED_TARGET_NAME} SYSTEM PRIVATE Python::Python
-  )
-  target_include_directories(
     ${PARSED_TARGET_NAME} PRIVATE ${PARSED_INCLUDE_DIRS}
   )
   target_include_directories(
     ${PARSED_TARGET_NAME} SYSTEM PRIVATE ${PARSED_SYSTEM_INCLUDE_DIRS}
   )
-  target_link_libraries(${PARSED_TARGET_NAME} PRIVATE ${PARSED_LINK_LIBS})
+  target_link_libraries(
+    ${PARSED_TARGET_NAME} PRIVATE Python::Python ${PARSED_LINK_LIBS}
+  )
 
   # Set all required properties on the target
   set_target_properties(
@@ -171,7 +158,69 @@ function(mtd_add_sip_module)
   endif()
 endfunction()
 
-# Private API
+# Private API Add a library target based on the given sip module file.
+# ~~~
+# Add a library target based on the given sip module file. The library target
+# will first generate the bindings and then compile to code.
+# Args:
+#   - target_name: The name of the library target
+#   - module_name: The name of the sip module as seen by Python
+#   - module_spec: The full path to the sip module file
+#   - pyqt_major_version: The major version of PyQt building against
+#   - sip_include_deps_var: A variable containing a list of files to add as
+#                           dependencies to the target
+# ~~~
+function(_add_sip_library target_name module_name module_spec
+         pyqt_major_version sip_include_deps_var
+)
+  # first produce template files for the sip-build project in the binary
+  # directory
+  set(_project_dir ${CMAKE_CURRENT_BINARY_DIR})
+
+  # replacement variables for templates
+  set(MODULE_NAME ${module_name})
+  set(MODULE_SPEC_FILE ${module_spec})
+  set(PYQT_MAJOR_VERSION ${pyqt_major_version})
+  if(PYQT_MAJOR_VERSION EQUAL 5)
+    set(PYQT_ABI_VERSION 12)
+  elseif(PYQT_MAJOR_VERSION EQUAL 6)
+    set(PYQT_ABI_VERSION 13)
+  else()
+    message(
+      FATAL_ERROR
+        "Unknown PyQt major version specified: ${pyqt_major_version}. \
+        This buildsystem only understands building against PyQt 5/6"
+    )
+  endif()
+
+  # generate project files for sip-build
+  configure_file(${SIP_PROJECT_PY_TEMPLATE} ${_project_dir}/project.py)
+  configure_file(${SIP_PYPROJECT_TOML_TEMPLATE} ${_project_dir}/pyproject.toml)
+
+  # add command for running sip-build. Sets a custom build directory and
+  # sip-build is then responsible for the directory layout below that. We are
+  # just interested in the directory that contains the generated .cpp file
+  set(_sip_build_dir sip-generated)
+  set(_sip_generated_cpp
+      ${_project_dir}/${_sip_build_dir}/${module_name}/sip${module_name}part0.cpp
+  )
+  add_custom_command(
+    OUTPUT ${_sip_generated_cpp}
+    COMMAND ${SIP_BUILD_EXECUTABLE} ARGS --build-dir=${_sip_build_dir}
+    WORKING_DIRECTORY ${_project_dir}
+    DEPENDS ${module_spec} ${_sip_include_deps}
+    COMMENT "Generating ${module_name} python bindings with sip"
+  )
+
+  add_library(
+    ${target_name} MODULE ${_sip_generated_cpp} ${${_sip_include_deps_var}}
+  )
+  target_include_directories(
+    ${target_name} SYSTEM PRIVATE ${_project_dir}/${_sip_build_dir}
+  )
+
+endfunction()
+
 # ~~~
 # Add a library target based on the given sip module file. The library target
 # will first generate the bindings and then compile to code.

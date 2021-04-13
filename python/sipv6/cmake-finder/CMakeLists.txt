@@ -20,17 +20,4 @@ find_package(
 find_package(SIP REQUIRED)
 find_package(PyQt5 REQUIRED)
 
-# C++ library
-add_library(widgets SHARED InfoWidget.cpp)
-target_link_libraries(widgets Qt5::Widgets)
-
-# Python library
-include(SipQtTargetFunctions)
-mtd_add_sip_module(
-  MODULE_NAME _commonqt5
-  SIP_SRCS _common.sip
-  TARGET_NAME _commonqt5
-  PYQT_VERSION 5
-  INCLUDE_DIRS ${CMAKE_CURRENT_LIST_DIR}
-  LINK_LIBS widgets
-)
+add_subdirectory(lib)

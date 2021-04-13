@@ -1,0 +1,15 @@
+[build-system]
+requires = ["sip >=5.3"]
+build-backend = "sipbuild.api"
+
+[tool.sip.metadata]
+name = "@MODULE_NAME@"
+
+[tool.sip.project]
+sip-module = "PyQt@PYQT_MAJOR_VERSION@.sip"
+abi-version = "@PYQT_ABI_VERSION@"
+
+[tool.sip.bindings.@MODULE_NAME@]
+concatenate = 1
+exceptions = true
+sip-file = "@MODULE_SPEC_FILE@"

@@ -45,6 +45,12 @@ Directory holding the SIP C++ header file.
 #]=======================================================================]
 include(FindPackageHandleStandardArgs)
 
+# module template containing module definition and module entry point
+# boilerplate
+find_file(SIP_MODULE_TEMPLATE NAME sipqtmodule.sip.in
+          PATHS ${CMAKE_MODULE_PATH}/sip-build
+)
+
 # First look for sip-build, indicating the newer v6 build system
 find_program(SIP_BUILD_EXECUTABLE sip-build)
 if(SIP_BUILD_EXECUTABLE)
@@ -58,10 +64,21 @@ if(SIP_BUILD_EXECUTABLE)
   # module generator
   find_program(SIP_MODULE_EXECUTABLE sip-module)
 
+  # pyproject.toml template
+  find_file(SIP_PYPROJECT_TOML_TEMPLATE NAME pyproject.toml.in
+            PATHS ${CMAKE_MODULE_PATH}/sip-build
+  )
+
+  # project.py template
+  find_file(SIP_PROJECT_PY_TEMPLATE NAME project.py.in
+            PATHS ${CMAKE_MODULE_PATH}/sip-build
+  )
+
   # Set expected variables for find_package
   find_package_handle_standard_args(
     SIP
-    REQUIRED_VARS SIP_BUILD_EXECUTABLE SIP_MODULE_EXECUTABLE
+    REQUIRED_VARS SIP_BUILD_EXECUTABLE SIP_MODULE_EXECUTABLE SIP_MODULE_TEMPLATE
+                  SIP_PYPROJECT_TOML_TEMPLATE SIP_PROJECT_PY_TEMPLATE
     VERSION_VAR SIP_VERSION
   )
 endif()
@@ -90,7 +107,7 @@ if(NOT SIP_FOUND)
   # Set expected variables for find_package
   find_package_handle_standard_args(
     SIP
-    REQUIRED_VARS SIP_EXECUTABLE SIP_INCLUDE_DIR
+    REQUIRED_VARS SIP_EXECUTABLE SIP_INCLUDE_DIR SIP_MODULE_TEMPLATE
     VERSION_VAR SIP_VERSION
   )
 endif()
