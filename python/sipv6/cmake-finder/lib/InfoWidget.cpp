@@ -1,3 +1,3 @@
 #include "InfoWidget.h"
 
-InfoWidget::InfoWidget(QWidget *parent) : QWidget(parent) {}
+InfoWidget::InfoWidget(QWidget *parent) : QTreeView(parent) {}

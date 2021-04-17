@@ -40,17 +40,7 @@ function(mtd_add_sip_module)
   # Create the module spec file from the list of .sip files The template file
   # expects the variables to have certain names
   set(MODULE_NAME ${PARSED_MODULE_NAME})
-  # set(SIP_INCLUDES) # Sip cannot %Include absolute paths so make them relative
-  # and add -I flag foreach(_sip_file ${PARSED_SIP_SRCS})
-  # get_filename_component(_filename ${_sip_file} NAME)
-  # get_filename_component(_directory ${_sip_file} DIRECTORY) set(SIP_INCLUDES
-  # "${SIP_INCLUDES}%Include ${_filename}\n") if(NOT _directory) set(_directory
-  # ${CMAKE_CURRENT_LIST_DIR}) elseif(NOT IS_ABSOLUTE _directory) set(_directory
-  # ${CMAKE_CURRENT_LIST_DIR}/${_directory}) endif() list(APPEND
-  # _sip_include_flags "-I${_directory}") list(APPEND _sip_include_deps
-  # "${_sip_file}") endforeach()
-
-  # Add absolute paths for header dependencies
+  # Add absolute paths for target header dependencies
   foreach(_header ${PARSED_HEADER_DEPS})
     if(IS_ABSOLUTE ${_header})
       list(APPEND _sip_include_deps "${_header}")
@@ -59,9 +49,7 @@ function(mtd_add_sip_module)
     endif()
   endforeach()
 
-  # Configure final module set(_module_spec
-  # ${CMAKE_CURRENT_BINARY_DIR}/${PARSED_MODULE_NAME}.sip)
-  # configure_file(${SIP_MODULE_TEMPLATE} ${_module_spec})
+  # Configure final module
   set(_module_spec ${CMAKE_CURRENT_LIST_DIR}/${PARSED_SIP_SRC})
   if(PARSED_PYQT_VERSION EQUAL 5)
     if(SIP_BUILD_EXECUTABLE)
@@ -181,17 +169,7 @@ function(_add_sip_library target_name module_name module_spec
   set(MODULE_NAME ${module_name})
   set(MODULE_SPEC_FILE ${module_spec})
   set(PYQT_MAJOR_VERSION ${pyqt_major_version})
-  if(PYQT_MAJOR_VERSION EQUAL 5)
-    set(PYQT_ABI_VERSION 12)
-  elseif(PYQT_MAJOR_VERSION EQUAL 6)
-    set(PYQT_ABI_VERSION 13)
-  else()
-    message(
-      FATAL_ERROR
-        "Unknown PyQt major version specified: ${pyqt_major_version}. \
-        This buildsystem only understands building against PyQt 5/6"
-    )
-  endif()
+  set(PYQT_SIP_ABI_VERSION ${PYQT${pyqt_major_version}_SIP_ABI_VERSION})
 
   # generate project files for sip-build
   configure_file(${SIP_PROJECT_PY_TEMPLATE} ${_project_dir}/project.py)
@@ -208,7 +186,8 @@ function(_add_sip_library target_name module_name module_spec
     OUTPUT ${_sip_generated_cpp}
     COMMAND ${SIP_BUILD_EXECUTABLE} ARGS --build-dir=${_sip_build_dir}
     WORKING_DIRECTORY ${_project_dir}
-    DEPENDS ${module_spec} ${_sip_include_deps}
+    DEPENDS ${module_spec} ${_project_dir}/project.py
+            ${_project_dir}/pyproject.toml ${_sip_include_deps}
     COMMENT "Generating ${module_name} python bindings with sip"
   )
 

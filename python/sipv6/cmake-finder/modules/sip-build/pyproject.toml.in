@@ -7,9 +7,10 @@ name = "@MODULE_NAME@"
 
 [tool.sip.project]
 sip-module = "PyQt@PYQT_MAJOR_VERSION@.sip"
-abi-version = "@PYQT_ABI_VERSION@"
+abi-version = "@PYQT_SIP_ABI_VERSION@"
 
 [tool.sip.bindings.@MODULE_NAME@]
 concatenate = 1
 exceptions = true
+protected-is-public = false
 sip-file = "@MODULE_SPEC_FILE@"

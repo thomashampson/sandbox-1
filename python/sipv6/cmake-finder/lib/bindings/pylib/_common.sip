@@ -19,7 +19,7 @@
 
 // ---- Public API ----
 
-class InfoWidget : QWidget {
+class InfoWidget : QTreeView {
 %TypeHeaderCode
 #include "InfoWidget.h"
 %End

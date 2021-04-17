@@ -5,9 +5,9 @@ CMake target
 """
 from sipbuild import Builder, Project
 
-
 class NoOpBuilder(Builder):
     """A 'Builder' that does nothing but satisfy the required interface"""
+
     def build_executable(self, buildable, *, fatal=True):
         """ Build an executable from a BuildableExecutable object and return
         the relative pathname of the executable.

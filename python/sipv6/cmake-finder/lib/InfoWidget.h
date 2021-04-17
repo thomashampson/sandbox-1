@@ -1,7 +1,7 @@
 #pragma once
-#include <QWidget>
+#include <QTreeView>
 
-class InfoWidget : public QWidget {
+class InfoWidget : public QTreeView {
 Q_OBJECT
 
 public:
