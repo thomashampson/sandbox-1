@@ -23,13 +23,13 @@ Steps to reproduce the behavior:
 **Expected behavior**
 <!-- A clear and concise description of what you expected to happen. -->
 
-<!--**Screenshots**
-If applicable/possible, add screenshots to help explain your problem. -->
+**Screenshots**
+<!--If applicable/possible, add screenshots to help explain your problem. -->
 
 **Platform/Version (please complete the following information):**
  - OS: [e.g. Windows, RHEL 7, Ubuntu, macOS]
  - OS Version: 
  - Mantid Version [e.g. 6.0.0]
 
-<!--**Additional context**
-Add any other context about the problem here.-->
+**Additional context**
+<!--Add any other context about the problem here.-->
