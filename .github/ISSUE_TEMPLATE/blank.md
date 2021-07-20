@@ -1,6 +1,6 @@
 ---
 name: Blank
-about: A blank issue for non-bug/non-feature types
+about: Blank issue with no presets
 title: ''
 labels: ''
 assignees: ''
