@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+<!-- If the issue was raised by a user they should be named here.
+**Original reporter:** [username facility]/[nobody]
+-->
+
 **Describe the bug**
 <!-- A clear and concise description of what the bug is. -->
 
