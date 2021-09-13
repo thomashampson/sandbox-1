@@ -1,0 +1,7 @@
+name: sandbox
+dependencies:
+  - boost=1.65.*
+  - cmake=3.21.*
+  - gxx_linux-64==9.3.*
+  - ninja=1.10.*
+  - python=3.6.*
