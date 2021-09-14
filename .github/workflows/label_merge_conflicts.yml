@@ -15,5 +15,5 @@ jobs:
           max_retries: 5
           wait_ms: 15000
           detect_merge_changes: false
-          conflict_comment: ":wave: Hi, @${author},\n\nI detected conflicts against the base branch. You'll want rebase :arrows_counterclockwise: your branch with upstream!"
+          conflict_comment: ":wave: Hi, @${author},\n\nConflicts have been detected against the base branch. You'll want to rebase your branch with upstream!"
 
