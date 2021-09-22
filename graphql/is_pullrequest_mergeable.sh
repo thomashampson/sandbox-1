@@ -5,8 +5,9 @@
 # for the background to the steps followed here.
 # It is assumend an environment variable GITHUB_OAUTH_TOKEN is defined
 
-BASE_REPO=$1
-PULL_NUMBER=$2
+BASE_REPO=$GIT_BASE_REPO
+PULL_NUMBER=$PR
+GH_TOKEN=${GITHUB_OAUTH_TOKEN:?Missing GITHUB_OAUTH_TOKEN environment variable}
 
 # Use curl or wget?
 HAVE_CURL=false
@@ -47,7 +48,7 @@ function _post_json() {
   local data="$2"
 
   local json_encoding_header="Content-Type: application/json; charset=utf-8"
-  local authorization_header="Authorization: bearer ${GITHUB_OAUTH_TOKEN:?Missing GITHUB_OAUTH_TOKEN environment variable}"
+  local authorization_header="Authorization: bearer ${GH_TOKEN}"
   if [[ ${HAVE_CURL} == true ]]; then
     curl \
       --silent \
