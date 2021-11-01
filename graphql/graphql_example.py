@@ -3,31 +3,51 @@ import os
 import pprint
 import requests
 
+GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
 
-def run_query(
-    query, headers
-):  # A simple function to use requests.post to make the API call. Note the json= section.
-    request = requests.post('https://api.github.com/graphql',
-                            json={'query': query},
-                            headers=headers)
+
+def graphql_query(query):
+    headers = {"Authorization": f"bearer {os.environ['GITHUB_OAUTH_TOKEN']}"}
+    request = requests.post(GRAPHQL_ENDPOINT, json={"query": query}, headers=headers)
     if request.status_code == 200:
         return request.json()
     else:
-        raise Exception(
-            "Query failed to run by returning code of {}. {}".format(
-                request.status_code, query))
+        raise RuntimeError(
+            f"Query failed to run by returning code of {request.status_code}. {query}"
+        )
 
 
 query = """
-{
-  repository(owner:"martyngigg", name:"sandbox") {
-    pullRequest(number:45) {
-      mergeable
-    }
-  }
-}
+{{
+  search(query: "is:pr repo:mantidproject/mantid", type: ISSUE, last: 100, before:{cursor}) {{
+    nodes {{
+      ... on PullRequest {{
+        number
+        state
+      }}
+    }}
+    pageInfo {{
+      hasPreviousPage
+      startCursor
+    }}
+  }}
+}}
 """
 
-headers = {"Authorization": f"bearer {os.environ['GITHUB_OAUTH_TOKEN']}"}
-result = run_query(query, headers)  # Execute the query
-pprint.pprint(result)
+all_results = {}
+cursor = "null"
+max_results = 1000
+while True:
+    query_results = graphql_query(query.format(cursor=cursor))
+    search_data = query_results["data"]["search"]
+    all_results.update(query_results)
+    if len(search_data["nodes"]) >= max_results:
+        break
+    page_info = search_data["pageInfo"]
+    has_next_page = page_info["hasPreviousPage"]
+    if has_next_page:
+        cursor = f'"{page_info["startCursor"]}"'
+    else:
+        break
+
+pprint.pprint(query_results)
