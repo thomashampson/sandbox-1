@@ -1,5 +1,20 @@
 def git_clone(){
     git url: 'https://github.com/martynigg/sandbox.git',
-        branch: ${env.branch}
+        branch: ${env.GIT_BRANCH}
 }
 
+pipeline {
+    agent none
+    stages {
+        stage('Build and Test'){
+            parallel {
+                stage('Build and Test on Ubuntu'){
+                    agent { label 'ubuntu-18.04-build' }
+                    steps {
+                        git_clone()
+                    }
+                }
+            }
+        }
+    }
+}
