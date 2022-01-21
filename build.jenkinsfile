@@ -1,0 +1,5 @@
+def git_clone(){
+    git url: 'https://github.com/martynigg/sandbox.git',
+        branch: ${env.branch}
+}
+
