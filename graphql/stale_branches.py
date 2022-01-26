@@ -1,12 +1,14 @@
 # An example to get the remaining rate limit using the Github GraphQL API.
 import json
 import os
-import pathlib
 import pandas as pd
+import pathlib
+import re
 import requests
 
 GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
-QUERY = """
+REST_API_ROOT = "https://api.github.com"
+BRANCHES_INFO_QUERY = """
 {{
     repository(name: "mantid", owner: "mantidproject") {{
         refs(first: 100, refPrefix: "refs/heads/", after:{cursor}) {{
@@ -28,14 +30,15 @@ QUERY = """
 }}
 """
 JSON_FILE_NAME = "mantid-stale-branches.json"
-WHITELISTED_REFS = ["main", "release-next"]
+GH_ORG = "mantidproject"
+GH_REPO = "mantid"
+GH_MAIN_BRANCH = "main"
+BRANCHES_TO_KEEP = map(re.compile, ("main", "release-next", "ornl.*", "ill.*"))
 
 
 def graphql_query(query) -> dict:
     headers = {"Authorization": f"bearer {os.environ['GITHUB_OAUTH_TOKEN']}"}
-    response = requests.post(GRAPHQL_ENDPOINT,
-                             json={"query": query},
-                             headers=headers)
+    response = requests.post(GRAPHQL_ENDPOINT, json={"query": query}, headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
@@ -45,28 +48,14 @@ def graphql_query(query) -> dict:
 
 
 def query_github() -> list:
-    def flatten_response(refs_nodes):
-        """Flatten the inner {'author': {'user': {'login': 'robertapplin'}} dict"""
-        flattened = []
-        for ref in refs_nodes:
-            target = ref["target"]
-            user = target["author"]["user"]
-            login = user["login"] if user is not None else ""
-            flattened.append(
-                dict(name=ref["name"],
-                     author=login,
-                     committedDate=target["committedDate"]))
-
-        return flattened
-
     branch_info = []
     cursor = "null"
     max_results = 500
     while True:
-        query_results = graphql_query(QUERY.format(cursor=cursor))
+        query_results = graphql_query(BRANCHES_INFO_QUERY.format(cursor=cursor))
         if "data" in query_results:
             refs = query_results["data"]["repository"]["refs"]
-            branch_info.extend(flatten_response(refs["nodes"]))
+            branch_info.extend(create_ref_info(refs["nodes"]))
             if len(branch_info) > max_results:
                 break
             page_info = refs["pageInfo"]
@@ -81,22 +70,46 @@ def query_github() -> list:
     return branch_info
 
 
+def create_ref_info(refs_nodes):
+    """Flatten the inner {'author': {'user': {'login': 'loginname'}} dict"""
+    flattened = []
+    for ref in refs_nodes:
+        name = ref["name"]
+        if any(map(lambda x: x.match(name) is not None, BRANCHES_TO_KEEP)):
+            continue
+
+        target = ref["target"]
+        user = target["author"]["user"]
+        login = user["login"] if user is not None else ""
+        flattened.append(
+            dict(
+                name=name,
+                author=login,
+                committedDate=target["committedDate"],
+                aheadBy=branch_ahead_by(GH_MAIN_BRANCH, name),
+            )
+        )
+
+    return flattened
+
+
+def branch_ahead_by(base: str, head: str) -> int:
+    """Compute the number of commits ahead head is of base"""
+    # Comparison is only possible with the rest api
+    endpoint = f"{REST_API_ROOT}/repos/{GH_ORG}/{GH_REPO}/compare/{base}...{head}"
+    headers = {"Authorization": f"bearer {os.environ['GITHUB_OAUTH_TOKEN']}"}
+    response = requests.get(endpoint, headers=headers)
+    return response.json()["ahead_by"]
+
+
 def main() -> int:
-    # If we have the file skip the query
-    json_file_path = pathlib.Path(JSON_FILE_NAME)
-    if json_file_path.exists():
-        with open(json_file_path, "r") as fp:
-            ref_info = json.load(fp)
-    else:
-        ref_info = query_github()
-        with open(json_file_path, "w") as fp:
-            json.dump(ref_info, fp)
+    ref_info = query_github()
 
     # allrefs has form
     # [{'name': 'branchname', 'author': 'username' ,
     #   'committedDate': '2019-05-09T21:28:42Z'}, ...]
     df = pd.DataFrame.from_dict(ref_info)
-    print(df)
+    df.to_json("./branch-info.json")
 
 
 if __name__ == "__main__":
