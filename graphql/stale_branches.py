@@ -1,9 +1,9 @@
 # An example to get the remaining rate limit using the Github GraphQL API.
-import json
+import datetime as dt
 import os
+from numpy import delete
 import pandas as pd
-import pathlib
-import re
+from pathlib import Path
 import requests
 
 GRAPHQL_ENDPOINT = "https://api.github.com/graphql"
@@ -29,16 +29,37 @@ BRANCHES_INFO_QUERY = """
     }}
 }}
 """
+PULL_REQUEST_HEADS_QUERY = """
+{{
+    repository(name: "mantid", owner: "mantidproject") {{
+      pullRequests(first: 100, states: [CLOSED], after:{cursor}) {{
+      nodes {{
+        headRefName
+        number
+      }}
+      pageInfo {{
+        hasNextPage
+        endCursor
+      }}
+      }}
+    }}
+}}
+"""
+
 JSON_FILE_NAME = "mantid-stale-branches.json"
 GH_ORG = "mantidproject"
 GH_REPO = "mantid"
 GH_MAIN_BRANCH = "main"
-BRANCHES_TO_KEEP = map(re.compile, ("main", "release-next", "ornl.*", "ill.*"))
+NEVER_STALE_BRANCHES = ("main", "release-next", "ornl", "ornl-next", "ornl-qa",
+                        "ill-next")
+STALE_AFTER_MONTHS = 3
 
 
 def graphql_query(query) -> dict:
     headers = {"Authorization": f"bearer {os.environ['GITHUB_OAUTH_TOKEN']}"}
-    response = requests.post(GRAPHQL_ENDPOINT, json={"query": query}, headers=headers)
+    response = requests.post(GRAPHQL_ENDPOINT,
+                             json={"query": query},
+                             headers=headers)
     if response.status_code == 200:
         return response.json()
     else:
@@ -47,15 +68,16 @@ def graphql_query(query) -> dict:
         )
 
 
-def query_github() -> list:
-    branch_info = []
+def all_github_branches() -> dict:
+    branch_info = dict()
     cursor = "null"
     max_results = 500
     while True:
-        query_results = graphql_query(BRANCHES_INFO_QUERY.format(cursor=cursor))
+        query_results = graphql_query(
+            BRANCHES_INFO_QUERY.format(cursor=cursor))
         if "data" in query_results:
             refs = query_results["data"]["repository"]["refs"]
-            branch_info.extend(create_ref_info(refs["nodes"]))
+            branch_info.update(create_ref_info(refs["nodes"]))
             if len(branch_info) > max_results:
                 break
             page_info = refs["pageInfo"]
@@ -72,25 +94,18 @@ def query_github() -> list:
 
 def create_ref_info(refs_nodes):
     """Flatten the inner {'author': {'user': {'login': 'loginname'}} dict"""
-    flattened = []
+    info = dict()
     for ref in refs_nodes:
         name = ref["name"]
-        if any(map(lambda x: x.match(name) is not None, BRANCHES_TO_KEEP)):
-            continue
-
         target = ref["target"]
         user = target["author"]["user"]
         login = user["login"] if user is not None else ""
-        flattened.append(
-            dict(
-                name=name,
-                author=login,
-                committedDate=target["committedDate"],
-                aheadBy=branch_ahead_by(GH_MAIN_BRANCH, name),
-            )
-        )
+        info[name] = [
+            name, login, target["committedDate"]
+            # branch_ahead_by(GH_MAIN_BRANCH, name),
+        ]
 
-    return flattened
+    return info
 
 
 def branch_ahead_by(base: str, head: str) -> int:
@@ -102,14 +117,78 @@ def branch_ahead_by(base: str, head: str) -> int:
     return response.json()["ahead_by"]
 
 
-def main() -> int:
-    ref_info = query_github()
+def pull_request_head_refs() -> list:
+    """Return the head refs of all pull requests
+    """
+    pr_head_refs = dict()
+    cursor = "null"
+    max_results = 10000
+    while True:
+        query_results = graphql_query(
+            PULL_REQUEST_HEADS_QUERY.format(cursor=cursor))
+        if "data" in query_results:
+            pulls = query_results["data"]["repository"]["pullRequests"]
+            for record in pulls["nodes"]:
+                pr_head_refs[record["headRefName"]] = record["number"]
+            if len(pr_head_refs) > max_results:
+                break
+            page_info = pulls["pageInfo"]
+            has_next_page = page_info["hasNextPage"]
+            if has_next_page:
+                cursor = f'"{page_info["endCursor"]}"'
+            else:
+                break
+        else:
+            break
 
-    # allrefs has form
-    # [{'name': 'branchname', 'author': 'username' ,
-    #   'committedDate': '2019-05-09T21:28:42Z'}, ...]
-    df = pd.DataFrame.from_dict(ref_info)
-    df.to_json("./branch-info.json")
+    return pr_head_refs
+
+
+def main() -> int:
+    json_cache_filename = Path(JSON_FILE_NAME)
+    if json_cache_filename.exists():
+        df = pd.read_json(json_cache_filename)
+    else:
+        ref_info = all_github_branches()
+        #pr_head_refs = pull_request_head_refs()
+        # for key, values in ref_info.items():
+        #     try:
+        #         values.append(pr_head_refs[key])
+        #     except KeyError:
+        #         values.append(0)
+
+        df = pd.DataFrame.from_dict(
+            ref_info,
+            orient='index',
+            columns=['name', 'author', 'committedDate'])
+        df.reset_index(inplace=True)
+        # Remove anything never considered stale
+        df = df[~df["name"].isin(NEVER_STALE_BRANCHES)]
+        df.to_json(json_cache_filename)
+
+    # Convert datetime column
+    df["committedDate"] = pd.to_datetime(df["committedDate"])
+    # Branches greater than stale threshold months old
+    stale_horizon = dt.datetime.today() - pd.DateOffset(
+        months=STALE_AFTER_MONTHS)
+    df = df[df["committedDate"].dt.date < stale_horizon.date()]
+
+    # Dump to csv
+    df.to_csv('mantid-stale-branches.csv', index=False)
+
+    # Dump information on branches to delete
+    authors_to_remove = [
+        "TWJubb", "TTitcombe", "srikanthravipati", "ThomasLohnert", "yxqd", "",
+        "AntonPiccardoSelg", "brandonhewer", "ciaranightingale", "clayton-tom",
+        "dtasev", "ewancook", "FedeMPouzols", "giovannidisiena", "ianbush",
+        "igudich", "joseph-torsney", "keeeto", "louisemccann", "mantid-roman",
+        "Matt-Cumber", "Matthew-Andrew", "matthew-d-jones", "NickDraper",
+        "OwenArnold", "PranavBahuguna", "ricleal", "SamJenkins1",
+        "samueljackson92", "tolu28-coder", "VickieLynch"
+    ]
+
+    deletable = df[df["author"].isin(authors_to_remove)]["name"]
+    deletable.to_json("deletable.json")
 
 
 if __name__ == "__main__":
