@@ -1,7 +1,6 @@
 # An example to get the remaining rate limit using the Github GraphQL API.
 import datetime as dt
 import os
-from numpy import delete
 import pandas as pd
 from pathlib import Path
 import requests
@@ -52,7 +51,7 @@ GH_REPO = "mantid"
 GH_MAIN_BRANCH = "main"
 NEVER_STALE_BRANCHES = ("main", "release-next", "ornl", "ornl-next", "ornl-qa",
                         "ill-next")
-STALE_AFTER_MONTHS = 3
+STALE_AFTER_MONTHS = 4
 
 
 def graphql_query(query) -> dict:
@@ -150,13 +149,6 @@ def main() -> int:
         df = pd.read_json(json_cache_filename)
     else:
         ref_info = all_github_branches()
-        #pr_head_refs = pull_request_head_refs()
-        # for key, values in ref_info.items():
-        #     try:
-        #         values.append(pr_head_refs[key])
-        #     except KeyError:
-        #         values.append(0)
-
         df = pd.DataFrame.from_dict(
             ref_info,
             orient='index',
@@ -176,19 +168,52 @@ def main() -> int:
     # Dump to csv
     df.to_csv('mantid-stale-branches.csv', index=False)
 
-    # Dump information on branches to delete
-    authors_to_remove = [
-        "TWJubb", "TTitcombe", "srikanthravipati", "ThomasLohnert", "yxqd", "",
-        "AntonPiccardoSelg", "brandonhewer", "ciaranightingale", "clayton-tom",
-        "dtasev", "ewancook", "FedeMPouzols", "giovannidisiena", "ianbush",
-        "igudich", "joseph-torsney", "keeeto", "louisemccann", "mantid-roman",
-        "Matt-Cumber", "Matthew-Andrew", "matthew-d-jones", "NickDraper",
-        "OwenArnold", "PranavBahuguna", "ricleal", "SamJenkins1",
-        "samueljackson92", "tolu28-coder", "VickieLynch"
-    ]
+    # Format a markdown document of authors branches
+    preamble = """This issue collates information on stale branches in this repository.
+For this purpose a stale branch is defined as a branch that has had no activity within the last 4 months.
 
-    deletable = df[df["author"].isin(authors_to_remove)]["name"]
-    deletable.to_json("deletable.json")
+Below are sections arranged by the author of the last commit to the branch.
+Please take the time to review the list under your GitHub username and for each:
+
+- if the branch should be kept then please either resurrect the work and open a pull request
+  or copy the branch to a fork (https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+  to back it up under your own account.
+- if the branch is no longer required then do nothing and it will be removed in 7 days.
+
+"""
+    markdown_lines = [preamble]
+    authors = pd.unique(df["author"])
+    deletable = []
+    for author in authors:
+        branches_by_author = df.query(f'author == "{author}"')['name']
+        markdown_lines.append(f"### @{author}")
+        for branchname in branches_by_author:
+            markdown_lines.append(
+                f"  - [{branchname}](https://github.com/mantidproject/mantid/compare/main...{branchname})"
+            )
+            deletable.append(branchname)
+        markdown_lines.append("\n")
+
+    with open('issue_body.md', 'w') as fp:
+        fp.write("\n".join(markdown_lines) + "\n")
+
+    print(f"Found {len(deletable)} branches to delete")
+    deletable_df = pd.DataFrame(deletable)
+    deletable_df.to_json("deletable.json", orient='records')
+    print(f"DataFrame has {len(deletable_df.index)} rows")
+
+    # Dump information on branches to delete
+    # authors_to_remove = [
+    #     "TWJubb", "TTitcombe", "srikanthravipati", "ThomasLohnert", "yxqd", "",
+    #     "AntonPiccardoSelg", "brandonhewer", "ciaranightingale", "clayton-tom",
+    #     "dtasev", "ewancook", "FedeMPouzols", "giovannidisiena", "ianbush",
+    #     "igudich", "joseph-torsney", "keeeto", "louisemccann", "mantid-roman",
+    #     "Matt-Cumber", "Matthew-Andrew", "matthew-d-jones", "NickDraper",
+    #     "OwenArnold", "PranavBahuguna", "ricleal", "SamJenkins1",
+    #     "samueljackson92", "tolu28-coder", "VickieLynch"
+    # ]
+
+    # deletable = df[df["author"].isin(authors_to_remove)]["name"]
 
 
 if __name__ == "__main__":

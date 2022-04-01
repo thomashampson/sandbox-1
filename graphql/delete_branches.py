@@ -65,7 +65,7 @@ def read_refs_from_file(filename: Path) -> list:
     with open(filename, "r") as fp:
         payload = json.load(fp)
 
-    return [ref for _, ref in payload.items()]
+    return [record["0"] for record in payload]
 
 
 def main() -> int:

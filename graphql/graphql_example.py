@@ -73,9 +73,7 @@ query = """
       }}
     }}
     pageInfo {{
-      hasPreviousPage
       hasNextPage
-      startCursor
       endCursor
     }}
   }}
