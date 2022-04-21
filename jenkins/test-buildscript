@@ -3,4 +3,15 @@
 echo "Job workspace $1"
 echo "OS type $2"
 
-exit 1
+function run_with_xvfb() {
+  eval $@
+}
+
+function terminate_xvfb() {
+  if [ $(command -v xvfb-run) ]; then
+    echo Stopping Xvfb
+  fi
+}
+
+run_with_xvfb test_runner.bat
+terminate_xvfb
