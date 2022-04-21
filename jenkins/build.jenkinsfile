@@ -5,23 +5,26 @@
 // ANACONDA_CHANNEL - The channel to publish to on Anaconda.org
 // ANACONDA_CHANNEL_LABEL - This will be used as the label for the channel, otherwise no label will be set.
 
-def build_and_test_win(){
-    bat "\"C:\\Program Files\\git\\bin\\bash.exe\" -c \"${WORKSPACE_UNIX}/jenkins/test-buildscript ${WORKSPACE_UNIX} win\""
+def build_and_test_win(workspaceUnixPath){
+    bat "\"C:\\Program Files\\git\\bin\\bash.exe\" -c \"${workspaceUnixPath}/jenkins/test-buildscript ${workspaceUnixPath} win\""
 }
 
 pipeline {
     agent none
     environment {
-        WORKSPACE_UNIX = $WORKSPACE.replaceAll("\\\\", "/")
+        WORKSPACE_UNIX = 
     }
    
     stages {
         stage('Build and Test'){
             parallel {
                 stage('Build and Test on Windows') {
+                  script {
+                   workspaceUnixPath = $WORKSPACE.replaceAll("\\\\", "/")
+                  }
                     agent { label 'conda-build-win' }
                     steps {
-                        build_and_test_win()
+                        build_and_test_win(workspaceUnixPath)
                     }
                 }
             }
