@@ -19,7 +19,7 @@ pipeline {
                 stage('Build and Test on Windows') {
                     agent { label 'conda-build-win' }
                     steps {
-                        build_and_test_win(workspaceUnixPath)
+                        build_and_test_win()
                     }
                 }
             }
