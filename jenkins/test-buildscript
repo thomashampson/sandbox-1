@@ -13,5 +13,5 @@ function terminate_xvfb() {
   fi
 }
 
-run_with_xvfb test_runner.bat
+run_with_xvfb $1/jenkins/test_runner.bat
 terminate_xvfb
