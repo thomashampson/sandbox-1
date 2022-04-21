@@ -13,10 +13,6 @@ pipeline {
     agent none
    
     stages {
-      stage('Initialize variables'){
-        steps {
-        }
-      }
       stage('Build and Test'){
       parallel {
         stage('Build and Test on Windows') {
