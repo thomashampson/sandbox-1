@@ -18,7 +18,7 @@ pipeline {
         stage('Build and Test on Windows') {
             agent { label 'conda-build-win' }
             steps {
-              def WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/")
+              script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
               build_and_test_win("$WORKSPACE_UNIX_PATH")
             }
         }
