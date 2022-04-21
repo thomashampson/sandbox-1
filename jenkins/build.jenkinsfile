@@ -6,7 +6,7 @@
 // ANACONDA_CHANNEL_LABEL - This will be used as the label for the channel, otherwise no label will be set.
 
 def build_and_test_win(){
-    workspaceUnixPath = $WORKSPACE.replaceAll("\\\\", "/")
+    def workspaceUnixPath = $WORKSPACE.replaceAll("\\\\", "/")
     bat "\"C:\\Program Files\\git\\bin\\bash.exe\" -c \"${workspaceUnixPath}/jenkins/test-buildscript ${workspaceUnixPath} win\""
 }
 
