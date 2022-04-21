@@ -15,9 +15,6 @@ pipeline {
     stages {
       stage('Initialize variables'){
         steps {
-           script {
-               WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/")
-            }
         }
       }
       stage('Build and Test'){
@@ -25,7 +22,10 @@ pipeline {
         stage('Build and Test on Windows') {
             agent { label 'conda-build-win' }
             steps {
-                build_and_test_win("$WORKSPACE_UNIX_PATH")
+              script {
+               WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/")
+              }
+              build_and_test_win("$WORKSPACE_UNIX_PATH")
             }
         }
       }
