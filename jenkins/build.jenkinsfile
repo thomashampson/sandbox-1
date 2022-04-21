@@ -6,7 +6,7 @@
 // ANACONDA_CHANNEL_LABEL - This will be used as the label for the channel, otherwise no label will be set.
 
 def build_and_test_win(){
-    bat "\"${WIN_BASH}\" -c \"${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} win\""
+    bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} win\""
 }
 
 pipeline {
