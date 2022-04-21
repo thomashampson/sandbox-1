@@ -6,23 +6,30 @@
 // ANACONDA_CHANNEL_LABEL - This will be used as the label for the channel, otherwise no label will be set.
 
 def build_and_test_win(){
-    def workspaceUnixPath = "$WORKSPACE".replaceAll("\\\\", "/")
-    bat "\"C:\\Program Files\\git\\bin\\bash.exe\" -c \"${workspaceUnixPath}/jenkins/test-buildscript ${workspaceUnixPath} win\""
+    // def workspaceUnixPath = "$WORKSPACE".replaceAll("\\\\", "/")
+    bat "\"C:\\Program Files\\git\\bin\\bash.exe\" -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
 }
 
 pipeline {
     agent none
    
     stages {
-        stage('Build and Test'){
-            parallel {
-                stage('Build and Test on Windows') {
-                    agent { label 'conda-build-win' }
-                    steps {
-                        build_and_test_win()
-                    }
-                }
+      stage('Initialize variables'){
+        steps {
+           script {
+               WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/")
             }
         }
+      }
+      stage('Build and Test'){
+      parallel {
+        stage('Build and Test on Windows') {
+            agent { label 'conda-build-win' }
+            steps {
+                build_and_test_win()
+            }
+        }
+      }
+     }
     }
 }
