@@ -10,7 +10,7 @@ def build_and_test_unix() {
 }
 
 def build_and_test_win(){
-    bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} win\""
+    bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
 }
 
 pipeline {
@@ -25,7 +25,7 @@ pipeline {
         stage('windows') {
           agent { label 'conda-build-win' }
           steps {
-            script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
+            script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
             build_and_test_win()
           }
           post {
@@ -38,7 +38,6 @@ pipeline {
         stage('linux') {
           agent { label 'conda-build-linux' }
           steps {
-            script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
             build_and_test_unix()
           }
           post {
