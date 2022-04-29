@@ -5,6 +5,10 @@
 // ANACONDA_CHANNEL - The channel to publish to on Anaconda.org
 // ANACONDA_CHANNEL_LABEL - This will be used as the label for the channel, otherwise no label will be set.
 
+def build_and_test_unix() {
+  sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux"
+}
+
 def build_and_test_win(){
     bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} win\""
 }
@@ -18,14 +22,31 @@ pipeline {
     stages {
       stage('Build and Test'){
       parallel {
-        stage('Build and Test on Windows') {
+        stage('windows') {
             agent { label 'conda-build-win' }
             steps {
               script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
               build_and_test_win()
             }
+            post {
+              always {
+                xunit thresholds: [failed(failureThreshold: '0')], 
+                    tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+            }
         }
-      }
+        stage('linux') {
+            agent { label 'conda-build-linux' }
+            steps {
+              script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
+              build_and_test_unix()
+            }
+            post {
+              always {
+                xunit thresholds: [failed(failureThreshold: '0')], 
+                    tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+            }
+         }
+       }
      }
-    }
+   }
 }
