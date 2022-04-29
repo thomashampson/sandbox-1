@@ -13,6 +13,12 @@ def build_and_test_win(){
     bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
 }
 
+def publish_test_reports() {
+    xunit thresholds: [failed(failureThreshold: '0')], 
+        tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+    junit "build/Testing/SystemTests/scripts/TEST-*.xml"
+}
+
 pipeline {
   agent none
   environment {
@@ -30,9 +36,7 @@ pipeline {
           }
           post {
             always {
-              xunit thresholds: [failed(failureThreshold: '0')], 
-                  tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
-              junit "build/Testing/SystemTests/scripts/TEST-*.xml"
+              publish_test_reports()
             }
           }
         }
@@ -43,9 +47,7 @@ pipeline {
           }
           post {
             always {
-              xunit thresholds: [failed(failureThreshold: '0')], 
-                  tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
-              junit "build/Testing/SystemTests/scripts/TEST-*.xml"
+              publish_test_reports()
             }
           }
         }
