@@ -57,6 +57,44 @@ Running 1 test.OK!
 				</Measurement>
 			</Results>
 		</Test>
+		<Test Status="failed">
+			<Name>DataHandlingTest_SaveSPETest</Name>
+			<Path>./Framework/DataHandling/test</Path>
+			<FullName>./Framework/DataHandling/test/DataHandlingTest_SaveSPETest</FullName>
+			<FullCommandLine>/usr/bin/cmake3 "-E" "chdir" "/jenkins_workdir/workspace/main_clean-rhel7/build/bin/Testing" "/jenkins_workdir/workspace/main_clean-rhel7/build/bin/DataHandlingTest" "SaveSPETest"</FullCommandLine>
+			<Results>
+				<NamedMeasurement type="numeric/double" name="Execution Time">
+					<Value>0.320066</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="numeric/double" name="Processors">
+					<Value>1</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Completion Status">
+					<Value>Completed</Value>
+				</NamedMeasurement>
+				<NamedMeasurement type="text/string" name="Command Line">
+					<Value>/usr/bin/cmake3 "-E" "chdir" "/jenkins_workdir/workspace/main_clean-rhel7/build/bin/Testing" "/jenkins_workdir/workspace/main_clean-rhel7/build/bin/DataHandlingTest" "SaveSPETest"</Value>
+				</NamedMeasurement>
+				<Measurement>
+					<Value>ConfigService-[Error] Cannot create the local instrument cache directory [/home/abc/.mantid/instrument/]. Mantid will not be able to update instrument definitions.
+ConfigService-[Error] File exists
+FrameworkManager-[Notice] Welcome to Mantid 6.3.20220428.719
+FrameworkManager-[Notice] Please cite: http://dx.doi.org/10.1016/j.nima.2014.07.029 and this release: http://dx.doi.org/10.5286/Software/Mantid
+Running 5 tests...LoadInstrument-[Notice] LoadInstrument started
+InstrumentDefinitionParser-[Notice] Geometry cache is not available
+InstrumentDefinitionParser-[Notice] Creating cache in /home/abc/.mantid/instrument/geometryCache/INESb4f050ee1f0ede801d0b94256804a294ffc4578b.vtp
+LoadInstrument-[Notice] LoadInstrument successful, Duration 0.00 seconds
+SaveSPE-[Notice] SaveSPE started
+SaveSPE-[Notice] SaveSPE successful, Duration 0.00 seconds
+.LoadInstrument-[Notice] LoadInstrument started
+LoadInstrument-[Notice] LoadInstrument successful, Duration 0.00 seconds
+SaveSPE-[Notice] SaveSPE started
+SaveSPE-[Notice] SaveSP...
+The rest of the test output was removed since it exceeds the threshold of 1024 bytes.
+</Value>
+				</Measurement>
+			</Results>
+		</Test>
     <EndDateTime>Apr 23 00:53 UTC</EndDateTime>
 		<EndTestTime>1650675218</EndTestTime>
 		<ElapsedMinutes>23</ElapsedMinutes>
