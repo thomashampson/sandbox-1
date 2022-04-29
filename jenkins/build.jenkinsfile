@@ -20,31 +20,32 @@ pipeline {
   }
 
   stages {
-    stage('Build and Test'){
-    parallel {
-      stage('windows') {
-        agent { label 'conda-build-win' }
-        steps {
-          script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
-          build_and_test_win()
-        }
-        post {
-          always {
-            xunit thresholds: [failed(failureThreshold: '0')], 
-                tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+    stage('Build and Test') {
+      parallel {
+        stage('windows') {
+          agent { label 'conda-build-win' }
+          steps {
+            script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
+            build_and_test_win()
+          }
+          post {
+            always {
+              xunit thresholds: [failed(failureThreshold: '0')], 
+                  tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+            }
           }
         }
-      }
-      stage('linux') {
-        agent { label 'conda-build-linux' }
-        steps {
-          script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
-          build_and_test_unix()
-        }
-        post {
-          always {
-            xunit thresholds: [failed(failureThreshold: '0')], 
-                tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+        stage('linux') {
+          agent { label 'conda-build-linux' }
+          steps {
+            script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
+            build_and_test_unix()
+          }
+          post {
+            always {
+              xunit thresholds: [failed(failureThreshold: '0')], 
+                  tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+            }
           }
         }
       }
