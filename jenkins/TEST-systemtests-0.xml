@@ -18,7 +18,7 @@ FrameworkManager-[Notice] Welcome to Mantid 6.3.20220422.945
 FrameworkManager-[Notice] Please cite: http://dx.doi.org/10.1016/j.nima.2014.07.029 and this release: http://dx.doi.org/10.5286/Software/Mantid
 FrameworkManager-[Information] Instrument updates disabled - cannot update instrument definitions.
 FrameworkManager-[Information] Version check disabled.
-</skipped></testcase><testcase classname="SystemTests.ISISIndirectBayesTest" name="QLResNormTest"><failed message="
+</skipped></testcase><testcase classname="SystemTests.ISISIndirectBayesTest" name="QLResNormTest"><failure message="
 ConfigService-[Information] Unable to locate directory at: /etc/mantid/instrument
 ConfigService-[Information] This is Mantid version 6.3.20220422.945 revision g8656f37
 ConfigService-[Information] running on ndw1851 starting 2022-04-23T01:32Z
@@ -38,7 +38,7 @@ FrameworkManager-[Notice] Welcome to Mantid 6.3.20220422.945
 FrameworkManager-[Notice] Please cite: http://dx.doi.org/10.1016/j.nima.2014.07.029 and this release: http://dx.doi.org/10.5286/Software/Mantid
 FrameworkManager-[Information] Instrument updates disabled - cannot update instrument definitions.
 FrameworkManager-[Information] Version check disabled.
-</failed></testcase><testcase classname="SystemTests.ISISIndirectBayesTest" name="QLWidthTest"><skipped message="
+</failure></testcase><testcase classname="SystemTests.ISISIndirectBayesTest" name="QLWidthTest"><skipped message="
 ConfigService-[Information] Unable to locate directory at: /etc/mantid/instrument
 ConfigService-[Information] This is Mantid version 6.3.20220422.945 revision g8656f37
 ConfigService-[Information] running on ndw1851 starting 2022-04-23T01:32Z
