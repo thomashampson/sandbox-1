@@ -14,39 +14,40 @@ def build_and_test_win(){
 }
 
 pipeline {
-    agent none
-    environment {
-      WIN_BASH = "C:\\Program Files\\git\\bin\\bash.exe"
-    }
+  agent none
+  environment {
+    WIN_BASH = "C:\\Program Files\\git\\bin\\bash.exe"
+  }
 
-    stages {
-      stage('Build and Test'){
-      parallel {
-        stage('windows') {
-            agent { label 'conda-build-win' }
-            steps {
-              script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
-              build_and_test_win()
-            }
-            post {
-              always {
-                xunit thresholds: [failed(failureThreshold: '0')], 
-                    tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
-            }
+  stages {
+    stage('Build and Test'){
+    parallel {
+      stage('windows') {
+        agent { label 'conda-build-win' }
+        steps {
+          script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
+          build_and_test_win()
         }
-        stage('linux') {
-            agent { label 'conda-build-linux' }
-            steps {
-              script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
-              build_and_test_unix()
-            }
-            post {
-              always {
-                xunit thresholds: [failed(failureThreshold: '0')], 
-                    tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
-            }
-         }
-       }
-     }
-   }
+        post {
+          always {
+            xunit thresholds: [failed(failureThreshold: '0')], 
+                tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+          }
+        }
+      }
+      stage('linux') {
+        agent { label 'conda-build-linux' }
+        steps {
+          script { WORKSPACE = "$WORKSPACE".replaceAll("\\\\", "/") }
+          build_and_test_unix()
+        }
+        post {
+          always {
+            xunit thresholds: [failed(failureThreshold: '0')], 
+                tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+          }
+        }
+      }
+    }
+  }
 }
