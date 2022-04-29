@@ -18,3 +18,6 @@ function terminate_xvfb() {
 rm -fr build
 mkdir -p build/Testing
 cp $1/jenkins/unittest-$2.xml build/Testing/
+
+mkdir -p build/Testing/SystemTests/scripts/
+cp $1/jenkins/TEST-*.xml build/Testing/SystemTests/scripts/

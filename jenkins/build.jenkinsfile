@@ -32,6 +32,7 @@ pipeline {
             always {
               xunit thresholds: [failed(failureThreshold: '0')], 
                   tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+              junit "build/Testing/SystemTests/scripts/TEST-*.xml"
             }
           }
         }
@@ -44,6 +45,7 @@ pipeline {
             always {
               xunit thresholds: [failed(failureThreshold: '0')], 
                   tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+              junit "build/Testing/SystemTests/scripts/TEST-*.xml"
             }
           }
         }
