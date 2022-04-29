@@ -15,5 +15,6 @@ function terminate_xvfb() {
 
 #run_with_xvfb $1/jenkins/test_runner.bat
 #terminate_xvfb
+rm -fr build
 mkdir -p build/Testing
 cp $1/jenkins/unittest-$2.xml build/Testing/
