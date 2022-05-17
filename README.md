@@ -1,5 +1,3 @@
 # Sandbox
 
-Keep all of the random stuff we try here.
-
-Inserting a conflict again
+Keep all of the random stuff I try here.
