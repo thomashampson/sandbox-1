@@ -1,23 +1,4 @@
 #!/bin/bash -ex
 
-echo "Building..."
-echo "Job workspace $1"
-echo "OS type $2"
-
-function run_with_xvfb() {
-    eval $@
-}
-
-function terminate_xvfb() {
-  if [ $(command -v xvfb-run) ]; then
-    echo Stopping Xvfb
-  fi
-}
-
-
-rm -fr build
-mkdir -p build/Testing
-cp $1/jenkins/unittest-$2.xml build/Testing/
-
-mkdir -p build/Testing/SystemTests/scripts/
-cp $1/jenkins/TEST-*.xml build/Testing/SystemTests/scripts/
+echo Testing pass-through args
+echo "$@"
