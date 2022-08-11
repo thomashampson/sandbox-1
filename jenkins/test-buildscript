@@ -2,3 +2,7 @@
 
 echo Testing pass-through args
 echo "$@"
+
+rm -fr build
+mkdir -p build/Testing/run
+cp *.xml build/Testing/run/
