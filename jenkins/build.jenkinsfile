@@ -26,7 +26,7 @@ pipeline {
   }
 
   stages {
-    stage('Build and Test') {
+    stage('Pipeline') {
       matrix {
        agent {
          label "conda-build-${PLATFORM}"
@@ -43,10 +43,10 @@ pipeline {
              script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
              build_and_test("${PLATFORM}")
              }
-          }
-          post {
-            always {
-              publish_test_reports()
+            post {
+              always {
+                publish_test_reports()
+              }
             }
           }
         }
