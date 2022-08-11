@@ -26,7 +26,6 @@ pipeline {
   }
 
   stages {
-    stage('Pipeline') {
       matrix {
        agent {
          label "conda-build-${PLATFORM}"
@@ -34,11 +33,11 @@ pipeline {
        axes {
          axis {
            name 'PLATFORM'
-           values 'linux', 'win', 'osx'
+           values 'linux', 'win'
          }
        }
        stages {   
-         stage('') {
+         stage('Build and Test') {
            steps {
              script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
              build_and_test("${PLATFORM}")
@@ -51,6 +50,5 @@ pipeline {
           }
         }
       }
-    }
   }
 }
