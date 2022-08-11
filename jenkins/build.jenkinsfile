@@ -38,7 +38,7 @@ pipeline {
          }
        }
        stages {   
-         stage {
+         stage('') {
            steps {
              script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
              build_and_test("${PLATFORM}")
