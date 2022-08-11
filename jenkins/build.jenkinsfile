@@ -5,12 +5,12 @@
 // ANACONDA_CHANNEL - The channel to publish to on Anaconda.org
 // ANACONDA_CHANNEL_LABEL - This will be used as the label for the channel, otherwise no label will be set.
 
-def build_and_test_unix() {
-  sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux ${GIT_COMMIT}"
-}
-
-def build_and_test_win(){
+def build_and_test(platform) {
+  if(platform == 'win') {
     bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
+  } else {
+    sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux ${GIT_COMMIT}"
+  }
 }
 
 def publish_test_reports() {
@@ -27,23 +27,22 @@ pipeline {
 
   stages {
     stage('Build and Test') {
-      parallel {
-        stage('windows') {
-          agent { label 'conda-build-win' }
-          steps {
-            script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
-            build_and_test_win()
-          }
-          post {
-            always {
-              publish_test_reports()
-            }
-          }
-        }
-        stage('linux') {
-          agent { label 'conda-build-linux' }
-          steps {
-            build_and_test_unix()
+      matrix {
+       agent {
+         label "conda-build-${PLATFORM}"
+       }
+       axes {
+         axis {
+           name 'PLATFORM'
+           values 'linux', 'win', 'osx'
+         }
+       }
+       stages {   
+         stage("${PLATFORM}") {
+           steps {
+             script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
+             build_and_test("${PLATFORM}")
+             }
           }
           post {
             always {
