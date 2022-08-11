@@ -5,4 +5,4 @@ echo "$@"
 
 rm -fr build
 mkdir -p build/Testing/run
-cp *.xml build/Testing/run/
+cp jenkins/*.xml build/Testing/run/
