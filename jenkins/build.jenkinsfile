@@ -29,7 +29,7 @@ pipeline {
         stage('Sandbox') {
             agent { label 'linux-64' }
             steps {
-                sh 'echo ${ANACONDA_CHANNEL_LABEL}'
+                sh "echo ${ANACONDA_CHANNEL_LABEL}"
             }
         }
     }
