@@ -42,6 +42,6 @@ def getGitBranchName() {
   if (name.contains("*/")) {
     name = name.split("\\*/")[1]
   }
-  return name
+  return "testing"
 }
 
