@@ -37,6 +37,10 @@ pipeline {
 }
 
 def getGitBranchName() {
-    return scm.branches[0].name
+  name = scm.branches[0].name
+  if (name.contains("*/")) {
+    name = name.split("\\*/")[1]
+  }
+  return name
 }
 
