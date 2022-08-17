@@ -1,6 +1,6 @@
 GIT_BRANCH = getGitBranchName()
 
-switch("${GIT_BRANCH}") {
+switch(GIT_BRANCH) {
   case ["main", "release-next"]:
     PUBLISH_PACKAGES_DEFAULT = true
     PACKAGE_SUFFIX_DEFAULT = 'Nightly'
