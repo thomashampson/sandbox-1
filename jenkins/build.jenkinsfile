@@ -1,4 +1,4 @@
-
+GIT_BRANCH = getGitBranchName()
 
 switch("${GIT_BRANCH}") {
   case ["main", "release-next"]:
@@ -32,3 +32,8 @@ pipeline {
         }
     }
 }
+
+def getGitBranchName() {
+    return scm.branches[0].name
+}
+
