@@ -30,7 +30,7 @@ pipeline {
             agent { label 'linux-64' }
             steps {
                 sh "echo ${GIT_BRANCH}"
-                sh 'echo ${env.ANACONDA_CHANNEL_LABEL}'
+                sh 'echo env.ANACONDA_CHANNEL_LABEL'
                 sh "echo ${env.PUBLISH_PACKAGES}"
             }
         }
