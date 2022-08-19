@@ -29,9 +29,10 @@ pipeline {
         stage('Sandbox') {
             agent { label 'linux-64' }
             steps {
-                sh "echo ${GIT_BRANCH}"
-                sh 'echo ${ANACONDA_CHANNEL_LABEL}'
-                sh "echo ${env.PUBLISH_PACKAGES}"
+                def scriptpath = 'jenkins/test-buildscript'
+                //sh "echo ${GIT_BRANCH}"
+                sh '${scriptpath}'
+                //sh "echo ${env.PUBLISH_PACKAGES}"
             }
         }
     }
