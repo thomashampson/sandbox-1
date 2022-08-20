@@ -29,7 +29,6 @@ pipeline {
         stage('Sandbox') {
             agent { label 'linux-64' }
             steps {
-                def scriptpath = ''
                 //sh "echo ${GIT_BRANCH}"
                 sh 'jenkins/test-buildscript\
                   arg1 arg2'
