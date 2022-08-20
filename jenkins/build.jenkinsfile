@@ -30,7 +30,7 @@ pipeline {
             agent { label 'linux-64' }
             steps {
                 //sh "echo ${GIT_BRANCH}"
-                sh 'jenkins/test-buildscript\
+                sh 'bash jenkins/test-buildscript\
                   arg1 arg2'
                 //sh "echo ${env.PUBLISH_PACKAGES}"
             }
