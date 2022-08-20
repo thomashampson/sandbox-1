@@ -31,7 +31,8 @@ pipeline {
             steps {
                 def scriptpath = 'jenkins/test-buildscript'
                 //sh "echo ${GIT_BRANCH}"
-                sh '${scriptpath}'
+                sh '${scriptpath}\
+                  arg1 arg2'
                 //sh "echo ${env.PUBLISH_PACKAGES}"
             }
         }
