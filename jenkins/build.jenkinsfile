@@ -1,48 +1,56 @@
-GIT_BRANCH = getGitBranchName()
+// This script expects the following environment variables to be set by the Jenkins job:
+// GITHUB_USER_NAME - The name of the user, being used with pushing/pulling from conda-recipes whilst updating it.
+// GITHUB_TOKEN_CREDENTIAL_ID - The name of the credentials token in Jenkins that you want to use for cloning and pushing to the conda-recipes repo
+// ANACONDA_TOKEN_CREDENTIAL_ID - The name of the credentials token in Jenkins that you want to use for publishing conda packages
+// ANACONDA_CHANNEL - The channel to publish to on Anaconda.org
+// ANACONDA_CHANNEL_LABEL - This will be used as the label for the channel, otherwise no label will be set.
 
-switch(GIT_BRANCH) {
-  case ["main", "release-next"]:
-    PUBLISH_PACKAGES_DEFAULT = true
-    PACKAGE_SUFFIX_DEFAULT = 'Nightly'
-    PLATFORM_CHOICES = ['all']
-    ANACONDA_CHANNEL_DEFAULT = 'mantid'
-    ANACONDA_CHANNEL_LABEL_DEFAULT = 'nightly'
-    PACKAGE_OPTIONS = ''
-    break
-  default:
-    PUBLISH_PACKAGES_DEFAULT = false
-    PACKAGE_SUFFIX_DEFAULT = 'Unstable'
-    PLATFORM_CHOICES = ['none', 'all', 'linux-64', 'win-64', 'osx-64']
-    ANACONDA_CHANNEL_DEFAULT = 'mantid-testing'
-    ANACONDA_CHANNEL_LABEL_DEFAULT = 'unstable'
-    break
+def build_and_test(platform) {
+  if(platform == 'win') {
+    bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
+  } else {
+    sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux ${GIT_COMMIT}"
+  }
 }
 
+def publish_test_reports() {
+    xunit thresholds: [failed(failureThreshold: '0')], 
+        tools: [CTest(excludesPattern: '', pattern: 'build/Testing/**/*.xml', stopProcessingIfError: true)]
+    junit "build/Testing/SystemTests/scripts/TEST-*.xml"
+}
 
 pipeline {
-    agent none
-    parameters {
-        string(name: 'ANACONDA_CHANNEL_LABEL', defaultValue: ANACONDA_CHANNEL_LABEL_DEFAULT, description: '')
-        booleanParam(name: 'PUBLISH_PACKAGES', defaultValue: PUBLISH_PACKAGES_DEFAULT, description: '')
-    }
-    stages {
-        stage('Sandbox') {
-            agent { label 'linux-64' }
-            steps {
-                //sh "echo ${GIT_BRANCH}"
-                sh 'bash jenkins/test-buildscript\
-                  arg1 arg2'
-                //sh "echo ${env.PUBLISH_PACKAGES}"
-            }
-        }
-    }
-}
-
-def getGitBranchName() {
-  name = scm.branches[0].name
-  if (name.contains("*/")) {
-    name = name.split("\\*/")[1]
+  agent none
+  environment {
+    WIN_BASH = "C:\\Program Files\\git\\bin\\bash.exe"
   }
-  return "main"
-}
 
+  stages {
+    stage('Build and Test') {
+      matrix {
+       agent {
+         label "conda-build-${PLATFORM}"
+       }
+       axes {
+         axis {
+           name 'PLATFORM'
+           values 'linux', 'win', 'osx'
+         }
+       }
+       stages {   
+         stage('') {
+           steps {
+             script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
+             build_and_test("${PLATFORM}")
+             }
+            post {
+              always {
+                publish_test_reports()
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
