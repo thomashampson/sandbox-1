@@ -30,7 +30,7 @@ pipeline {
     stage('Build and Test') {
       matrix {
        agent {
-         label "conda-build-${PLATFORM}"
+         label "${PLATFORM}"
        }
        axes {
          axis {
