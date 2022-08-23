@@ -24,6 +24,7 @@ pipeline {
   agent none
   environment {
     WIN_BASH = "C:\\Program Files\\git\\bin\\bash.exe"
+    WORKSPACE_UNIX_PATH = expression { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
   }
 
   stages {
@@ -41,7 +42,6 @@ pipeline {
        stages {   
          stage('') {
            steps {
-             script { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
              build_and_test("${PLATFORM}")
              }
             post {
