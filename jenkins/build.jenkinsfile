@@ -20,11 +20,15 @@ def publish_test_reports() {
     junit "build/Testing/SystemTests/scripts/TEST-*.xml"
 }
 
+def workspacePathUnixStyle() {
+  return "${WORKSPACE}".replaceAll("\\\\", "/")
+}
+
 pipeline {
   agent none
   environment {
     WIN_BASH = "C:\\Program Files\\git\\bin\\bash.exe"
-    WORKSPACE_UNIX_PATH = expression { WORKSPACE_UNIX_PATH = "$WORKSPACE".replaceAll("\\\\", "/") }
+    WORKSPACE_UNIX_PATH = workspacePathUnixStyle()
   }
 
   stages {
