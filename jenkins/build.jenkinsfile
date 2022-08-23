@@ -7,7 +7,7 @@
 
 def build_and_test(platform) {
   if(platform.startsWith('win')) {
-    echo "Doing windows"
+    
     bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
   } else {
     sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux ${GIT_COMMIT}"
@@ -20,15 +20,14 @@ def publish_test_reports() {
     junit "build/Testing/SystemTests/scripts/TEST-*.xml"
 }
 
-def workspacePathUnixStyle() {
-  return "${WORKSPACE}".replaceAll("\\\\", "/")
+def toUnixStyle(path) {
+  return "${path}".replaceAll("\\\\", "/")
 }
 
 pipeline {
   agent none
   environment {
     WIN_BASH = "C:\\Program Files\\git\\bin\\bash.exe"
-    WORKSPACE_UNIX_PATH = workspacePathUnixStyle()
   }
 
   stages {
