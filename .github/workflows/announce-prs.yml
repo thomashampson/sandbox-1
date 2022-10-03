@@ -1,0 +1,11 @@
+name: Send list of PRs ready to review to Slack
+
+on:
+  workflow_dispatch:
+
+jobs:
+  print-hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print hello
+        run: echo This was manually started
