@@ -16,7 +16,7 @@ pipeline {
        stages {   
          stage('One') {
            steps {
-             checkout scm
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_COMMIT}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
@@ -24,7 +24,7 @@ pipeline {
          stage('Two') {
            steps {
             input 'Proceed?'
-            checkout scm
+            checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_COMMIT}"]]]
             sh 'git rev-parse HEAD'
             sh 'cat jenkins/info.txt'
            }
