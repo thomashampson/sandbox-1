@@ -7,11 +7,18 @@
 
 def build_and_test(platform) {
   if(platform.startsWith('win')) {
-    
     bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
   } else {
-    sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux ${GIT_COMMIT}"
+    sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux"
   }
+  
+  input 'Please enter something'
+  
+  if(platform.startsWith('win')) {
+    bat "\"${WIN_BASH}\" -ex -c \"${WORKSPACE_UNIX_PATH}/jenkins/test-buildscript ${WORKSPACE_UNIX_PATH} win\""
+  } else {
+    sh "bash -ex ${WORKSPACE}/jenkins/test-buildscript ${WORKSPACE} linux"
+  } 
 }
 
 def publish_test_reports() {
@@ -39,7 +46,7 @@ pipeline {
        axes {
          axis {
            name 'PLATFORM'
-           values 'linux-64', 'win-64', 'osx-64'
+           values 'linux-64'
          }
        }
        stages {   
