@@ -16,12 +16,15 @@ pipeline {
        stages {   
          stage('One') {
            steps {
+             checkout scm
              sh 'cat jenkins/info.txt'
            }
          }
          stage('Two') {
            steps {
-             sh 'cat jenkins/info.txt'
+            input 'Proceed?'
+            checkout scm
+            sh 'cat jenkins/info.txt'
            }
          }
        }
