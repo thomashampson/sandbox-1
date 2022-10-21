@@ -2,7 +2,6 @@
 
 echo Testing pass-through args
 echo "$@"
-
-rm -fr build
-mkdir -p build/Testing/run
-cp jenkins/*.xml build/Testing/run/
+echo
+echo Content of info.txt
+cat jenkins/info.txt
