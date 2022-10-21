@@ -53,15 +53,9 @@ pipeline {
          stage('') {
            steps {
              build_and_test("${PLATFORM}")
-             }
-            post {
-              always {
-                publish_test_reports()
-              }
-            }
-          }
-        }
-      }
+           }
+         }
+       }
     }
   }
 }
