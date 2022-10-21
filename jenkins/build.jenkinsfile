@@ -17,6 +17,7 @@ pipeline {
          stage('One') {
            steps {
              checkout scm
+             sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
          }
@@ -24,6 +25,7 @@ pipeline {
            steps {
             input 'Proceed?'
             checkout scm
+            sh 'git rev-parse HEAD'
             sh 'cat jenkins/info.txt'
            }
          }
