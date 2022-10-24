@@ -41,7 +41,6 @@ pipeline {
             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_COMMIT}"]]]
             sh 'git rev-parse HEAD'
             sh 'cat jenkins/info.txt'
-           }
          }
        }
       }
