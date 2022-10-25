@@ -1,8 +1,6 @@
 GIT_BRANCH = git_branch_name()
 //def scmVars = checkout scm
-//GIT_SHA = scmVars.GIT_COMMIT
-
-
+GIT_SHA = $GIT_COMMIT
 
 pipeline {
   agent none
