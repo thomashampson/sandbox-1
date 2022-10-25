@@ -1,4 +1,4 @@
-GIT_BRANCH = git_branch_name()
+MY_GIT_BRANCH = git_branch_name()
 GIT_SHA = env.GIT_COMMIT
 
 pipeline {
@@ -14,6 +14,7 @@ pipeline {
            steps {
              sh 'printenv'
              sh 'echo ${GIT_BRANCH}'
+             sh 'echo ${MY_GIT_BRANCH}'
              sh 'echo ${GIT_SHA}'
              sh 'echo ${GIT_COMMIT}'
              checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
