@@ -1,13 +1,9 @@
-//MY_GIT_BRANCH = git_branch_name()
-//GIT_SHA = env.GIT_COMMIT
-
 pipeline {
   agent none
-  environment {
-    MY_GIT_BRANCH = git_branch_name()
-    GIT_SHA = git_commit($MY_GIT_BRANCH)
-  }
   stages {
+    stage('Set git commit') {
+      env.GIT_SHA = GIT_COMMIT
+    }
     stage('Build and Test') {
       agent {
          label "tom_linux-64"
@@ -15,12 +11,9 @@ pipeline {
        stages {   
          stage('One') {
            steps {
-             sh 'printenv'
-             sh 'echo ${GIT_BRANCH}'
-             sh 'echo ${MY_GIT_BRANCH}'
-             sh 'echo ${GIT_SHA}'
+             sh 'echo ${env.GIT_SHA}'
              sh 'echo ${GIT_COMMIT}'
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
              input 'Proceed?'
@@ -28,7 +21,7 @@ pipeline {
          }
          stage('Two') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
@@ -42,14 +35,14 @@ pipeline {
        stages {   
          stage('Three') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
          }
          stage('Four') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
           }
@@ -66,10 +59,3 @@ def git_branch_name() {
   }
   return name
 }
-
-def git_commit(branch_name) {
-  sha = sh(returnStdout: true, script: "git rev-parse $branch_name").trim()
-  sh 'echo ${sha}'
-  return sha
-}
-
