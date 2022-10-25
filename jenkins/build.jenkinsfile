@@ -1,3 +1,4 @@
+GIT_BRANCH = git_branch_name()
 GIT_SHA = env.GIT_COMMIT
 
 pipeline {
@@ -12,7 +13,9 @@ pipeline {
          stage('One') {
            steps {
              sh 'printenv'
+             sh 'echo ${GIT_BRANCH}'
              sh 'echo ${GIT_SHA}'
+             sh 'echo ${GIT_COMMIT}'
              checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
@@ -50,4 +53,12 @@ pipeline {
       }
     }
   }
+}
+
+def git_branch_name() {
+  name = scm.branches[0].name
+  if (name.contains("*/")) {
+    name = name.split("\\*/")[1]
+  }
+  return name
 }
