@@ -1,6 +1,8 @@
 GIT_BRANCH = git_branch_name()
-def scmVars = checkout scm
-GIT_SHA = scmVars.GIT_COMMIT
+//def scmVars = checkout scm
+//GIT_SHA = scmVars.GIT_COMMIT
+
+
 
 pipeline {
   agent none
@@ -13,6 +15,7 @@ pipeline {
        stages {   
          stage('One') {
            steps {
+             sh 'printenv'
              checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
