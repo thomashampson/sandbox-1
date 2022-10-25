@@ -5,7 +5,7 @@ pipeline {
   agent none
   environment {
     MY_GIT_BRANCH = git_branch_name()
-    GIT_SHA = $GIT_COMMIT
+    GIT_SHA = "$GIT_COMMIT"
   }
   stages {
     stage('Build and Test') {
