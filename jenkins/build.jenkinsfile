@@ -2,7 +2,12 @@ pipeline {
   agent none
   stages {
     stage('Set git commit') {
-      env.GIT_SHA = GIT_COMMIT
+      agent {
+        label "tom_linux-64"
+      }
+      steps {
+        env.GIT_SHA = GIT_COMMIT
+      }
     }
     stage('Build and Test') {
       agent {
