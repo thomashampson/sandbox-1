@@ -12,6 +12,7 @@ pipeline {
          stage('One') {
            steps {
              sh 'printenv'
+             sh 'echo ${GIT_SHA}'
              checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
