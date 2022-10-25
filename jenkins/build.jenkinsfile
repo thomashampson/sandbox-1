@@ -18,9 +18,9 @@ pipeline {
        stages {   
          stage('One') {
            steps {
-             sh 'echo "${env.GIT_SHA}"'
+             sh 'echo "${GIT_SHA}"'
              sh 'echo ${GIT_COMMIT}'
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
              input 'Proceed?'
@@ -28,7 +28,7 @@ pipeline {
          }
          stage('Two') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
@@ -42,14 +42,14 @@ pipeline {
        stages {   
          stage('Three') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
          }
          stage('Four') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${env.GIT_SHA}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
           }
