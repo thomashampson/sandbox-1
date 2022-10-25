@@ -1,15 +1,18 @@
+GIT_BRANCH = git_branch_name()
+GIT_SHA = git_commit(GIT_BRANCH)
+
 pipeline {
   agent none
 
   stages {
     stage('Build and Test') {
       agent {
-         label "linux-64"
+         label "tom_linux-64"
        }
        stages {   
          stage('One') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_COMMIT}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
              input 'Proceed?'
@@ -17,7 +20,7 @@ pipeline {
          }
          stage('Two') {
            steps {
-            checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_COMMIT}"]]]
+            checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
             sh 'git rev-parse HEAD'
             sh 'cat jenkins/info.txt'
            }
@@ -26,19 +29,19 @@ pipeline {
     }
     stage('Package stuff') {
       agent {
-         label "linux-64"
+         label "tom_linux-64"
        }
        stages {   
          stage('Three') {
            steps {
-             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_COMMIT}"]]]
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
          }
          stage('Four') {
            steps {
-            checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_COMMIT}"]]]
+            checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
             sh 'git rev-parse HEAD'
             sh 'cat jenkins/info.txt'
          }
@@ -46,4 +49,17 @@ pipeline {
       }
     }
   }
+}
+
+def git_branch_name() {
+  name = scm.branches[0].name
+  if (name.contains("*/")) {
+    name = name.split("\\*/")[1]
+  }
+  return name
+}
+
+def git_commit(branch_name) {
+  sha = sh(returnStdout: true, script: "git rev-parse $branch_name").trim()
+  return sha
 }
