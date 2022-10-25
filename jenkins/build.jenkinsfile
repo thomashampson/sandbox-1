@@ -69,6 +69,7 @@ def git_branch_name() {
 
 def git_commit(branch_name) {
   sha = sh(returnStdout: true, script: "git rev-parse $branch_name").trim()
+  sh 'echo ${sha}'
   return sha
 }
 
