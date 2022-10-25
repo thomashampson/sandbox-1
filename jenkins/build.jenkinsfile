@@ -1,5 +1,3 @@
-GIT_BRANCH = git_branch_name()
-//def scmVars = checkout scm
 GIT_SHA = env.GIT_COMMIT
 
 pipeline {
@@ -14,8 +12,7 @@ pipeline {
          stage('One') {
            steps {
              sh 'printenv'
-             //checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
-             checkout scm
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
              input 'Proceed?'
@@ -23,8 +20,7 @@ pipeline {
          }
          stage('Two') {
            steps {
-            //checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
-             checkout scm
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
@@ -38,16 +34,14 @@ pipeline {
        stages {   
          stage('Three') {
            steps {
-             //checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
-             checkout scm
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
            }
          }
          stage('Four') {
            steps {
-            //checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
-             checkout scm
+             checkout scm: [$class: 'GitSCM', branches: [[name: "${GIT_SHA}"]]]
              sh 'git rev-parse HEAD'
              sh 'cat jenkins/info.txt'
           }
@@ -55,12 +49,4 @@ pipeline {
       }
     }
   }
-}
-
-def git_branch_name() {
-  name = scm.branches[0].name
-  if (name.contains("*/")) {
-    name = name.split("\\*/")[1]
-  }
-  return name
 }
