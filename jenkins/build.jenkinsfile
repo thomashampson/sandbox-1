@@ -1,5 +1,6 @@
 GIT_BRANCH = git_branch_name()
-GIT_SHA = git_commit(GIT_BRANCH)
+def scmVars = checkout scm
+GIT_SHA = scmVars.GIT_COMMIT
 
 pipeline {
   agent none
@@ -57,10 +58,4 @@ def git_branch_name() {
     name = name.split("\\*/")[1]
   }
   return name
-}
-
-def git_commit(branch_name) {
-  sha = sh(returnStdout: true, script: "git rev-parse $branch_name").trim()
-  //return sha
-  return "0878b788d035f79e6bd4b89ad15a4b52bd267425"
 }
