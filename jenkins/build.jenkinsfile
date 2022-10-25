@@ -5,7 +5,7 @@ pipeline {
   agent none
   environment {
     MY_GIT_BRANCH = git_branch_name()
-    GIT_SHA = "$GIT_COMMIT"
+    GIT_SHA = git_commit($MY_GIT_BRANCH)
   }
   stages {
     stage('Build and Test') {
@@ -66,3 +66,9 @@ def git_branch_name() {
   }
   return name
 }
+
+def git_commit(branch_name) {
+  sha = sh(returnStdout: true, script: "git rev-parse $branch_name").trim()
+  return sha
+}
+
